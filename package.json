@@ -2,6 +2,9 @@
   "name": "solidity-playground",
   "version": "0.0.1",
   "description": "",
+  "files": [
+    "contracts"
+  ],
   "scripts": {
     "lint:js": "eslint .",
     "lint:js:fix": "eslint . --fix",
