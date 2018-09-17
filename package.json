@@ -2,6 +2,14 @@
   "name": "solidity-playground",
   "version": "0.0.1",
   "description": "",
+  "scripts": {
+    "lint:sol": "solium -d .",
+    "lint:sol:fix": "solium -d . --fix",
+    "lint": "npm run lint:sol"
+  },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "solium": "^1.1.8"
+  }
 }
