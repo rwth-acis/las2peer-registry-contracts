@@ -17,6 +17,7 @@
     "no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
     "no-trailing-spaces": ["error", { "skipBlankLines": false }],
     "quotes": ["warn", "single"],
-    "semi": ["error", "always"]
+    "semi": ["error", "never"],
+    "space-before-function-paren": ["error", "always"]
   }
 }
