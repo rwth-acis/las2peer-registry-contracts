@@ -12,7 +12,7 @@
   "rules": {
     "strict": ["error", "global"],
     "eol-last": ["error", "always"],
-    "indent": ["error", 2],
+    "indent": ["error", 4],
     "linebreak-style": ["error", "unix"],
     "no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
     "no-trailing-spaces": ["error", { "skipBlankLines": false }],
