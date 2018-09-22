@@ -1,31 +1,36 @@
 var HelloWorld = artifacts.require('HelloWorld')
 
 // random caveats:
-// - using chai expect partials (e.g., `then(expect(3).to.equal)`) mess up the test hooks somehow
+// - using chai expect(..).to.equal(..) only works, uh, sometimes
+
+const v = 23 // some test value
 
 // this contract function is provided by truffle, see their testing docs
 contract('HelloWorld', accounts => {
     it('direct call of noop retuns tx which happens to use 21765 gas', () => {
-        HelloWorld.deployed().then(i => i.noop(3)).then(r => expect(r.receipt.gasUsed).to.equal(21765))
+        HelloWorld.deployed().then(i => i.noop(v)).then(r => assert.equal(r.receipt.gasUsed, 21765))
+        HelloWorld.deployed().then(i => i.noop(v)).then(r => expect(21765).to.equal(r.receipt.gasUsed))
     })
 
     it('noop function returns nothing', () => {
-        HelloWorld.deployed().then(i => i.noop.call(3)).then(r => expect(r).to.deep.equal([]))
+        HelloWorld.deployed().then(i => i.noop.call(v)).then(r => assert.deepEqual(r, []))
+        HelloWorld.deployed().then(i => i.noop.call(v)).then(r => expect(r).to.deep.equal([]))
     })
 
     it('executing pure function directly returns value', () => {
-        HelloWorld.deployed().then(i => i.pureF(3)).then(r => expect(3).to.equal(r))
+        HelloWorld.deployed().then(i => i.pureF(v)).then(r => assert.equal(r, v))
+        HelloWorld.deployed().then(i => i.pureF(v)).then(r => expect(23 == r).to.be.true)
     })
 
     it('calling pure function via call returns value', () => {
-        HelloWorld.deployed().then(i => i.pureF.call(3)).then(r => expect(3).to.equal(r))
+        HelloWorld.deployed().then(i => i.pureF.call(v)).then(r => assert.equal(r, v))
     })
 
     it('setting and getting seems consistent', () => {
         HelloWorld.deployed().then(i => {
-            const testVal = 23
-            i.setterF(testVal)
-            i.viewF(1 /* ignored anyway */).then(r => expect(testVal).to.equal(r))
+            i.setterF(v)
+            i.viewF(1 /* ignored anyway */).then(r => assert.equal(r, v))
+            i.viewF(1 /* ignored anyway */).then(expect(v).to.equal)
         })
     })
 })
