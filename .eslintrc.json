@@ -7,7 +7,10 @@
     "artifacts": false,
     "contract": false,
     "assert": false,
-    "web3": false
+    "web3": false,
+    "it": false,
+    "expect": false
+
   },
   "rules": {
     "strict": ["error", "global"],

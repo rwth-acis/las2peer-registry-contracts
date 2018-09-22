@@ -1,49 +1,56 @@
 pragma solidity ^0.4.24;
 
+// random caveats:
+// - `migrate --reset` is definitely needed, `migrate` messes up
+
 
 contract HelloWorld {
-    uint public value;
-    event ValueSet(uint val);
-
-    event Greeted(string);
+    uint public memberVar;
 
     event SimpleEvent(uint);
 
-    function greet(uint) public returns(uint) {
-        emit Greeted("test");
-        return 2;
+    function noop(uint v) public {
     }
 
-    function nonOverloadedGreet(uint ignored) public returns(uint) {
-        emit SimpleEvent(7);
-        return 4;
+    function unmarkedPureF(uint v) public returns(uint) {
+        return v;
     }
 
-    function greet(string) public returns(uint) {
-        emit Greeted("test");
-        return 3;
+    function pureF(uint v) public pure returns(uint) {
+        return v;
     }
 
-    function echo(uint val) public pure returns(uint) {
-        return val;
+    function viewF(uint v) public view returns(uint) {
+        return memberVar;
     }
 
-    function nonPureEcho(uint val) public returns(uint) {
-        return val;
+    function setterF(uint v) public {
+        memberVar = v;
     }
 
-    function withEvent(uint val) public returns(uint) {
-        emit SimpleEvent(val);
-        return 8;
+    // fails: HelloWorld.deployed().then(i => i.emitEvent(3))
+    // shows returns: HelloWorld.deployed().then(i => i.emitEvent.call(3))
+    function emitEvent(uint v) public {
+        emit SimpleEvent(v);
     }
 
-    function setValue(uint val) public returns(uint) {
-        value = val;
-        emit ValueSet(value);
+    // same
+    function emitAndReturn(uint v) public returns(uint) {
+        emit SimpleEvent(v);
+        return v;
+    }
+
+    // truffle only accepts one of them, and the order of declaration does not matter
+    // (in this case it is always the uint256 version
+    function overloaded(uint v) public returns(uint) {
+        emit SimpleEvent(42);
         return 42;
     }
 
-    function getValue() public view returns(uint) {
-        return value;
+    // this works: HelloWorld.deployed().then(i => i.contract.overloaded['bool'].call(true))
+    // also works, returns tx hash:  HelloWorld.deployed().then(i => i.contract.overloaded['bool'](true, {from: '0xc6932a3a7bcdc546284ceea8295b63e4d1d55500', gas: 50000}))
+    function overloaded(bool v) public returns(uint) {
+        emit SimpleEvent(23);
+        return 23;
     }
 }
