@@ -23,7 +23,7 @@ contract UserRegistry {
     mapping (bytes32 => User) public users;
 
     modifier onlyOwnName(bytes32 name) {
-        require(name != 0); // empty name is not owned by anyone
+        require(name != 0, "Empty name is not owned by anyone.");
         require(users[name].owner == msg.sender, "Sender does not own name.");
         _;
     }
@@ -49,10 +49,10 @@ contract UserRegistry {
     }
 
     function _register(User user) internal {
-        require(user.name != 0);
-        require(user.owner != 0);
+        require(user.name != 0, "Name must be non-zero.");
+        require(user.owner != 0, "Owner address must be non-zero.");
 
-        require(nameIsAvailable(user.name));
+        require(nameIsAvailable(user.name), "Name already taken.");
 
         users[user.name] = user;
     }
