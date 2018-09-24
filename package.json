@@ -11,11 +11,15 @@
     "lint:sol": "solium -d .",
     "lint:sol:fix": "solium -d . --fix",
     "lint": "npm run lint:js && npm run lint:sol",
-    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix"
+    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
+    "test": "truffle test"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
     "eslint": "^5.6.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
