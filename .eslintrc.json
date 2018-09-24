@@ -7,12 +7,15 @@
     "artifacts": false,
     "contract": false,
     "assert": false,
-    "web3": false
+    "web3": false,
+    "it": false,
+    "expect": false
+
   },
   "rules": {
     "strict": ["error", "global"],
     "eol-last": ["error", "always"],
-    "indent": ["error", 2],
+    "indent": ["error", 4],
     "linebreak-style": ["error", "unix"],
     "no-mixed-spaces-and-tabs": ["error", "smart-tabs"],
     "no-trailing-spaces": ["error", { "skipBlankLines": false }],
