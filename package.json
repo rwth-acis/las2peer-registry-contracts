@@ -11,7 +11,8 @@
     "lint:sol": "solium -d .",
     "lint:sol:fix": "solium -d . --fix",
     "lint": "npm run lint:js && npm run lint:sol",
-    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix"
+    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
+    "test": "truffle test"
   },
   "author": "",
   "license": "ISC",
