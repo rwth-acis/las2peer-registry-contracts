@@ -1,11 +1,10 @@
+const BigNumber = web3.BigNumber
 require('chai')
+    .use(require('chai-bignumber')(BigNumber))
     .should()
 
 const HelloWorldContract = artifacts.require('HelloWorld')
 
-// TODO: possibly get around the BigNumber issue as described here:
-//       https://medium.com/@gus_tavo_guim/beautifying-your-smart-contract-tests-with-javascript-4d284efcb2e8
-//
 // TODO: possibly use chai-as-promised to simplify tests:
 //       https://github.com/domenic/chai-as-promised
 
@@ -27,15 +26,15 @@ contract('HelloWorld', accounts => {
     })
 
     it('executing pure function directly returns value', async () => {
-        (await this.i.pureF(v)).toNumber().should.equal(v)
+        (await this.i.pureF(v)).should.be.bignumber.equal(v)
     })
 
     it('calling pure function via call returns value', async () => {
-        (await this.i.pureF.call(v)).toNumber().should.equal(v)
+        (await this.i.pureF.call(v)).should.be.bignumber.equal(v)
     })
 
     it('setting and getting seems consistent', async () => {
         await this.i.setterF(v);
-        (await this.i.viewF(1 /* dummy arg */)).toNumber().should.equal(v)
+        (await this.i.viewF(1 /* dummy arg */)).should.be.bignumber.equal(v)
     })
 })
