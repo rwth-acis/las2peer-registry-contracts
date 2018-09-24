@@ -1,4 +1,4 @@
-var HelloWorldC = artifacts.require('HelloWorld')
+const HelloWorldContract = artifacts.require('HelloWorld')
 
 // random caveats:
 // - using chai expect(..).to.equal(..) does not work for BigNumbers
@@ -7,32 +7,31 @@ var HelloWorldC = artifacts.require('HelloWorld')
 
 const v = 23 // some test value
 
-function testFunction (action, assertion) {
-    HelloWorldC.deployed().then(action.call).then(assertion.call)
-}
-
 // this contract function is provided by truffle, see their testing docs
-contract('HelloWorldC', accounts => {
-    it('direct call of noop retuns tx which happens to use 21765 gas', () => {
-        testFunction(() => this.noop(v), () => assert.equal(this.receipt.gasUsed, 21765))
+contract('HelloWorld', accounts => {
+    beforeEach(async () => {
+        let instance = await HelloWorldContract.deployed()
+        this.i = instance
     })
 
-    it('noop function returns nothing', () => {
-        testFunction(() => this.noop.call(v), () => assert.deepEqual(this, []))
+    it('direct call of noop retuns tx which happens to use 21765 gas', async () => {
+        assert.equal((await this.i.noop(v)).receipt.gasUsed, 21765)
     })
 
-    it('executing pure function directly returns value', () => {
-        testFunction(() => this.pureF(v), () => assert.equal(this, v))
+    it('noop function returns nothing', async () => {
+        assert.deepEqual(await this.i.noop.call(v), [])
     })
 
-    it('calling pure function via call returns value', () => {
-        testFunction(() => this.pureF.call(v), () => assert.equal(this, v))
+    it('executing pure function directly returns value', async () => {
+        assert.equal(await this.i.pureF(v), v)
     })
 
-    it('setting and getting seems consistent', () => {
-        testFunction(() => {
-            this.setterF(v)
-            this.viewF(1 /* ignored anyway */)
-        }, () => expect(this).to.equal(v))
+    it('calling pure function via call returns value', async () => {
+        assert.equal(await this.i.pureF.call(v), v)
+    })
+
+    it('setting and getting seems consistent', async () => {
+        await this.i.setterF(v)
+        expect(await this.i.viewF(1 /* dummy arg */), v)
     })
 })

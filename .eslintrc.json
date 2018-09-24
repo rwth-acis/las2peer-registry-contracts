@@ -9,8 +9,8 @@
     "assert": false,
     "web3": false,
     "it": false,
-    "expect": false
-
+    "expect": false,
+    "beforeEach": false
   },
   "rules": {
     "strict": ["error", "global"],
