@@ -5,7 +5,8 @@
   "files": [
     "contracts",
     "migrations",
-    "test"
+    "test",
+    "truffle.js"
   ],
   "scripts": {
     "lint": "npm run lint:js && npm run lint:sol",
