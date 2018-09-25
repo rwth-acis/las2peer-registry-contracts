@@ -9,10 +9,10 @@ pragma solidity ^0.4.24;
  * mappings aren't supported.
  */
 contract UserRegistry {
-    function debug() pure returns(bool) {
-        return true;
+    // DEBUG
+    function _addOne(uint n) public pure returns(uint) {
+        return n + 1;
     }
-
 
     event UserRegistered(bytes32);
     event UserTransfered(bytes32);

@@ -9,8 +9,6 @@ import "./UserRegistry.sol";
 contract ServiceRegistry {
     UserRegistry userRegistry;
 
-    event Debug(bool);
-
     event ServiceCreated(
         bytes32 indexed name,
         bytes32 indexed author
@@ -27,16 +25,10 @@ contract ServiceRegistry {
 
     constructor(address userRegistryAddress) public {
         userRegistry = UserRegistry(userRegistryAddress);
-        //debug();
     }
 
-    function _debug() public returns(uint) {
-        bool b = userRegistry.debug();
-        emit Debug(b);
-        if (b) {
-            return 42;
-        } else {
-            return 23;
-        }
+    // DEBUG: yay, this works
+    function _test() public view returns(uint) {
+        return userRegistry._addOne(23);
     }
 }
