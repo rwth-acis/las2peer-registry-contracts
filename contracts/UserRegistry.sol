@@ -9,6 +9,11 @@ pragma solidity ^0.4.24;
  * mappings aren't supported.
  */
 contract UserRegistry {
+    // DEBUG
+    function _addOne(uint n) public pure returns(uint) {
+        return n + 1;
+    }
+
     event UserRegistered(bytes32);
     event UserTransfered(bytes32);
     //event UserDeleted(bytes32);
@@ -31,7 +36,7 @@ contract UserRegistry {
     function nameIsAvailable(bytes32 name) public view returns(bool) {
         //return (users[name] == 0); // not possible since User is a struct
         User storage maybeEmpty = users[name];
-        return (maybeEmpty.owner == 0);
+        return maybeEmpty.owner == 0;
     }
 
     function register(bytes32 name, bytes agentId) public {
