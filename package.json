@@ -1,21 +1,35 @@
 {
-  "name": "solidity-playground",
+  "name": "las2peer-registry-contracts",
   "version": "0.0.1",
-  "description": "",
+  "description": "Solidity smart contracts for the las2peer Service Registry",
   "files": [
-    "contracts"
+    "contracts",
+    "migrations",
+    "test"
   ],
   "scripts": {
+    "lint": "npm run lint:js && npm run lint:sol",
+    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
     "lint:js": "eslint .",
     "lint:js:fix": "eslint . --fix",
     "lint:sol": "solium -d .",
     "lint:sol:fix": "solium -d . --fix",
-    "lint": "npm run lint:js && npm run lint:sol",
-    "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
-    "test": "truffle test"
+    "ganache": "ganache-cli",
+    "start-ganache": "ganache-cli >/dev/null & echo $! > .ganache-cli_pid",
+    "stop-ganache": "kill -s QUIT $(cat .ganache-cli_pid) && rm -f .ganache-cli_pid",
+    "test": "truffle test",
+    "truffle": "truffle"
   },
-  "author": "",
-  "license": "ISC",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/rwth-acis/las2peer-registry-contracts.git"
+  },
+  "author": "Tom Janson <tom.janson@rwth-aachen.de>",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/rwth-acis/las2peer-registry-contracts/issues"
+  },
+  "homepage": "https://github.com/rwth-acis/las2peer-registry-contracts",
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",

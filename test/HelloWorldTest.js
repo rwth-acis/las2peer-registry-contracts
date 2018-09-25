@@ -12,7 +12,7 @@ contract('HelloWorld', accounts => {
     })
 
     it('direct call of noop retuns tx which happens to use 21765 gas', async () => {
-        (this.i.noop(v)).should.eventually.nested.include({'receipt.gasUsed': 21765})
+        (this.i.noop(v)).should.eventually.nested.include({ 'receipt.gasUsed': 21765 })
     })
 
     it('noop function returns nothing', async () => {

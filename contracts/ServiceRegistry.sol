@@ -26,9 +26,4 @@ contract ServiceRegistry {
     constructor(address userRegistryAddress) public {
         userRegistry = UserRegistry(userRegistryAddress);
     }
-
-    // DEBUG: yay, this works
-    function _test() public view returns(uint) {
-        return userRegistry._addOne(23);
-    }
 }
