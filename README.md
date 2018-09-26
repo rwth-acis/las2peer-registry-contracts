@@ -1,4 +1,4 @@
-# las2peer Service Registry Smart Contracts 
+# las2peer Service Registry Smart Contracts
 
 This repo contains Solidity smart contracts for an Ethereum-based service registry for [las2peer](https://github.com/rwth-acis/las2peer).
 
