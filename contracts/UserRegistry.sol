@@ -25,13 +25,23 @@ contract UserRegistry {
     modifier onlyOwnName(bytes32 name) {
         require(name != 0, "Empty name is not owned by anyone.");
         require(users[name].owner == msg.sender, "Sender does not own name.");
+        // TODO: wait a second, I thought accessing a struct's field from a mapping like that isn't possible!?
+        // why does this (seem to) work?
         _;
     }
 
-    function nameIsAvailable(bytes32 name) public view returns(bool) {
-        //return (users[name] == 0); // not possible since User is a struct
+    function nameIsValid(bytes32 name) public pure returns(bool) {
+        return name != 0;
+    }
+
+    function nameIsTaken(bytes32 name) public view returns(bool) {
         User storage maybeEmpty = users[name];
-        return maybeEmpty.owner == 0;
+        return maybeEmpty.owner != 0;
+    }
+
+    // eh, this should have a better name to indicate that available =/= !taken
+    function nameIsAvailable(bytes32 name) public view returns(bool) {
+        return (nameIsValid(name) && !nameIsTaken(name));
     }
 
     function register(bytes32 name, bytes agentId) public {
@@ -52,7 +62,7 @@ contract UserRegistry {
         require(user.name != 0, "Name must be non-zero.");
         require(user.owner != 0, "Owner address must be non-zero.");
 
-        require(nameIsAvailable(user.name), "Name already taken.");
+        require(nameIsAvailable(user.name), "Name already taken or invalid.");
 
         users[user.name] = user;
     }
