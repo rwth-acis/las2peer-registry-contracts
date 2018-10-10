@@ -8,7 +8,7 @@ pragma solidity ^0.4.24;
  * string description. Creation is free.
  */
 contract CommunityTagIndex {
-    event CommunityTagCreated(bytes32);
+    event CommunityTagCreated(bytes32 name);
 
     struct CommunityTag {
         bytes32 name;

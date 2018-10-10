@@ -7,7 +7,9 @@ pragma solidity ^0.4.24;
 contract HelloWorld {
     uint public memberVar;
 
-    event SimpleEvent(uint);
+    event SimpleEvent(uint name);
+    // name is needed due to truffle bug:
+    // https://github.com/trufflesuite/truffle/issues/494
 
     function noop(uint v) public {
     }

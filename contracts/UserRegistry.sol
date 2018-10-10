@@ -9,8 +9,8 @@ pragma solidity ^0.4.24;
  * mappings aren't supported.
  */
 contract UserRegistry {
-    event UserRegistered(bytes32);
-    event UserTransfered(bytes32);
+    event UserRegistered(bytes32 name);
+    event UserTransferred(bytes32 name);
     //event UserDeleted(bytes32);
 
     struct User {
@@ -36,16 +36,16 @@ contract UserRegistry {
 
     function register(bytes32 name, bytes agentId) public {
         _register(User(name, agentId, msg.sender, ""));
+        emit UserRegistered(name);
     }
 
     function setSupplement(bytes32 name, bytes supplement) public onlyOwnName(name) {
         users[name].dhtSupplement = supplement;
-        emit UserRegistered(name);
     }
 
     function transfer(bytes32 name, address newOwner) public onlyOwnName(name) {
         users[name].owner = newOwner;
-        emit UserTransfered(name);
+        emit UserTransferred(name);
     }
 
     function _register(User user) internal {
