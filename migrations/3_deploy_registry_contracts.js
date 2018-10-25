@@ -9,5 +9,4 @@ module.exports = function (deployer) {
         return deployer.deploy(ServiceRegistryContract, UserRegistryContract.address)
     })
     deployer.deploy(CommunityTagIndexContract)
-    deployer.deploy(UserRegistryContract)
 }
