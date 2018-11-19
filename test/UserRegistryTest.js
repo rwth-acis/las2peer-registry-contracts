@@ -63,7 +63,11 @@ contract('UserRegistryContract', accounts => {
         return (web3.toAscii(registryEntry[supplementIndex])).should.equal(text)
     })
 
-    it('username access restriction works (for setting supplement)', async () => {
+    it('username access restriction works (for setting supplement)', async function () {
+        if (accounts.length < 2) {
+            this.skip()
+        }
+
         await userRegistry.register(name, agentId, { from: accounts[1] })
 
         // https://github.com/domenic/chai-as-promised#multiple-promise-assertions
@@ -73,7 +77,11 @@ contract('UserRegistryContract', accounts => {
         ])
     })
 
-    it('name can be transferred', async () => {
+    it('name can be transferred', async function () {
+        if (accounts.length < 2) {
+            this.skip()
+        }
+
         await userRegistry.register(name, agentId, { from: accounts[0] })
         let transferResult = await userRegistry.transfer(name, accounts[1])
         return Promise.all([
