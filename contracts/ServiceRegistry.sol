@@ -36,11 +36,11 @@ contract ServiceRegistry {
     struct Service {
         LongName name;
         bytes32 author;
-        Version[] versions;
         // TODO: extra data
     }
 
-    mapping (bytes32 => Service) public serviceMap;
+    mapping (bytes32 => Service) public services;
+    mapping (bytes32 => Version[]) public serviceVersions;
 
     modifier onlyUserOwner(bytes32 userName) {
         // oh boy, this is all kinds of fun
@@ -85,7 +85,7 @@ contract ServiceRegistry {
     }
 
     function _nameIsAvailable(bytes32 hash) internal view returns(bool) {
-        return serviceMap[hash].author == 0;
+        return services[hash].author == 0;
     }
 
     function register(bytes32 serviceNamePart1, bytes32 serviceNamePart2, bytes32 serviceNamePart3, bytes32 serviceNamePart4, bytes32 authorName) public {
@@ -104,13 +104,7 @@ contract ServiceRegistry {
         bytes32 hash = _longNameHash(serviceName);
         require(_nameIsAvailable(hash), "Service name already taken.");
 
-        // not sure why this works; similar:
-        // https://ethereum.stackexchange.com/questions/30857/how-to-initialize-an-empty-array-inside-a-struct
-        Service memory s;
-        s.name = serviceName;
-        s.author = authorName;
-        serviceMap[hash] = s;
-
+        services[hash] = Service(serviceName, authorName);
         emit ServiceCreated(hash, authorName);
     }
 
@@ -126,22 +120,14 @@ contract ServiceRegistry {
     )
         public
     {
-        // does not work
-        // https://stackoverflow.com/questions/49345903/copying-of-type-struct-memory-memory-to-storage-not-yet-supported
-        //LongName storage serviceName = LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4);
-        //Version storage version = Version(versionMajor, versionMinor, versionPatch);
-        //_release(Release(serviceName, version), authorName);
-        Version storage version = Version(versionMajor, versionMinor, versionPatch);
-        _release(LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4), authorName, version);
+        _release(LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4), authorName, Version(versionMajor, versionMinor, versionPatch));
     }
 
-    function _release(LongName serviceName, bytes32 authorName, Version storage version) internal onlyUserOwner(authorName) {
+    function _release(LongName serviceName, bytes32 authorName, Version version) internal onlyUserOwner(authorName) {
         bytes32 hash = _longNameHash(serviceName);
-        require(serviceMap[hash].author == authorName, "Passed author does not own service.");
+        require(services[hash].author == authorName, "Passed author does not own service.");
 
-        serviceMap[hash].versions[serviceMap[hash].versions.length++] = version;
-        //serviceMap[hash].versions.push(version);
-
+        serviceVersions[hash].push(version);
         emit ServiceReleased(hash, version);
     }
 }
