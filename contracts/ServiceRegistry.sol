@@ -1,4 +1,5 @@
 pragma solidity ^0.4.24;
+pragma experimental ABIEncoderV2;
 
 import "./UserRegistry.sol";
 
@@ -10,27 +11,36 @@ contract ServiceRegistry {
     UserRegistry public userRegistry;
 
     event ServiceCreated(
-        bytes32 indexed name,
+        bytes32 indexed nameHash,
         bytes32 indexed author
     );
 
     event ServiceReleased(
-        bytes32 indexed name,
-        uint versionMajor,
-        uint versionMinor,
-        uint versionPatch
+        bytes32 indexed nameHash,
+        Version version
     );
 
-    struct Release {
-        bytes32 name;
-        uint versionMajor; // TODO: do something with version?
-        uint versionMinor;
-        uint versionPatch;
-        bytes signature; // TODO
+    struct LongName {
+        bytes32 part1;
+        bytes32 part2;
+        bytes32 part3;
+        bytes32 part4;
     }
 
-    mapping (bytes32 => bytes32) public serviceNameToAuthor;
-    mapping (bytes32 => Release[]) public serviceNameToReleases;
+    struct Version {
+        uint versionMajor;
+        uint versionMinor;
+        uint versionPatch;
+    }
+
+    struct Service {
+        LongName name;
+        bytes32 author;
+        Version[] versions;
+        // TODO: extra data
+    }
+
+    mapping (bytes32 => Service) public serviceMap;
 
     modifier onlyUserOwner(bytes32 userName) {
         // oh boy, this is all kinds of fun
@@ -53,31 +63,62 @@ contract ServiceRegistry {
         _;
     }
 
+    modifier nonZeroLongName(LongName name) {
+        require(!(name.part1 == 0 && name.part2 == 0 && name.part3 == 0 && name.part3 == 0), "At least one part must be non-zero.");
+        _;
+    }
+
     constructor(address userRegistryAddress) public {
         userRegistry = UserRegistry(userRegistryAddress);
     }
 
-    function nameIsAvailable(bytes32 name) public view returns(bool) {
-        return serviceNameToAuthor[name] == 0;
+    function _longNameHash(LongName n) internal pure returns(bytes32) {
+        return keccak256(abi.encodePacked(n.part1, n.part2, n.part3, n.part4));
     }
 
-    function register(
-        bytes32 serviceName,
+    function nameIsAvailable(bytes32 namePart1, bytes32 namePart2, bytes32 namePart3, bytes32 namePart4) public view returns(bool) {
+        return _nameIsAvailable(LongName(namePart1, namePart2, namePart3, namePart4));
+    }
+
+    function _nameIsAvailable(LongName name) internal view returns(bool) {
+        return _nameIsAvailable(_longNameHash(name));
+    }
+
+    function _nameIsAvailable(bytes32 hash) internal view returns(bool) {
+        return serviceMap[hash].author == 0;
+    }
+
+    function register(bytes32 serviceNamePart1, bytes32 serviceNamePart2, bytes32 serviceNamePart3, bytes32 serviceNamePart4, bytes32 authorName) public {
+        _register(LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4), authorName);
+    }
+
+    function _register(
+        LongName serviceName,
         bytes32 authorName
     )
-        public
-        nonZero(serviceName)
+        internal
+        nonZeroLongName(serviceName)
         nonZero(authorName)
         onlyUserOwner(authorName)
     {
-        require(nameIsAvailable(serviceName), "Service name already taken.");
+        bytes32 hash = _longNameHash(serviceName);
+        require(_nameIsAvailable(hash), "Service name already taken.");
 
-        serviceNameToAuthor[serviceName] = authorName;
-        emit ServiceCreated(serviceName, authorName);
+        // not sure why this works; similar:
+        // https://ethereum.stackexchange.com/questions/30857/how-to-initialize-an-empty-array-inside-a-struct
+        Service memory s;
+        s.name = serviceName;
+        s.author = authorName;
+        serviceMap[hash] = s;
+
+        emit ServiceCreated(hash, authorName);
     }
 
     function release(
-        bytes32 serviceName,
+        bytes32 serviceNamePart1,
+        bytes32 serviceNamePart2,
+        bytes32 serviceNamePart3,
+        bytes32 serviceNamePart4,
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
@@ -85,33 +126,22 @@ contract ServiceRegistry {
     )
         public
     {
-        _release(Release(serviceName, versionMajor, versionMinor, versionPatch, ""), authorName);
+        // does not work
+        // https://stackoverflow.com/questions/49345903/copying-of-type-struct-memory-memory-to-storage-not-yet-supported
+        //LongName storage serviceName = LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4);
+        //Version storage version = Version(versionMajor, versionMinor, versionPatch);
+        //_release(Release(serviceName, version), authorName);
+        Version storage version = Version(versionMajor, versionMinor, versionPatch);
+        _release(LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4), authorName, version);
     }
 
-    function _release(Release r, bytes32 authorName) internal onlyUserOwner(authorName) {
-        require(serviceNameToAuthor[r.name] == authorName, "Passed author does not own service.");
+    function _release(LongName serviceName, bytes32 authorName, Version storage version) internal onlyUserOwner(authorName) {
+        bytes32 hash = _longNameHash(serviceName);
+        require(serviceMap[hash].author == authorName, "Passed author does not own service.");
 
-        serviceNameToReleases[r.name].push(r);
-        emit ServiceReleased(r.name, r.versionMajor, r.versionMinor, r.versionPatch);
+        serviceMap[hash].versions[serviceMap[hash].versions.length++] = version;
+        //serviceMap[hash].versions.push(version);
+
+        emit ServiceReleased(hash, version);
     }
-
-    /*
-        TODO: figure out what access method is appropriate (and possible)
-        see test 'release can be accessed via public state variable'
-
-    // returning mappings is not possible and not on the roadmap
-    function getReleases() public view returns(mapping (bytes32 => Release[])) {
-        return serviceNameToReleases;
-    }
-
-    // returning structs requires experimental compiler feature ABIEncoderV2
-    function getReleases(bytes32 serviceName) public view returns(Release[]) {
-        return serviceNameToReleases[serviceName];
-    }
-
-    // works, but handing the decomposed struct tuples requires web3.js beta release or a different client lib
-    function getRelease(bytes32 serviceName, uint index) public view returns(Release) {
-        return serviceNameToReleases[serviceName][index];
-    }
-    */
 }
