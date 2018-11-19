@@ -60,7 +60,7 @@ contract('UserRegistryContract', accounts => {
 
         let registryEntry = await userRegistry.users(name)
         const supplementIndex = 3;
-        (web3.toAscii(registryEntry[supplementIndex])).should.equal(text)
+        return (web3.toAscii(registryEntry[supplementIndex])).should.equal(text)
     })
 
     it('username access restriction works (for setting supplement)', async () => {
