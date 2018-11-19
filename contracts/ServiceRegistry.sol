@@ -1,5 +1,4 @@
 pragma solidity ^0.4.24;
-pragma experimental ABIEncoderV2;
 
 import "./UserRegistry.sol";
 
@@ -20,13 +19,6 @@ contract ServiceRegistry {
         Version version
     );
 
-    struct LongName {
-        bytes32 part1;
-        bytes32 part2;
-        bytes32 part3;
-        bytes32 part4;
-    }
-
     struct Version {
         uint versionMajor;
         uint versionMinor;
@@ -34,7 +26,7 @@ contract ServiceRegistry {
     }
 
     struct Service {
-        LongName name;
+        string name;
         bytes32 author;
         // TODO: extra data
     }
@@ -63,8 +55,8 @@ contract ServiceRegistry {
         _;
     }
 
-    modifier nonZeroLongName(LongName name) {
-        require(!(name.part1 == 0 && name.part2 == 0 && name.part3 == 0 && name.part3 == 0), "At least one part must be non-zero.");
+    modifier nonZeroString(string something) {
+        require(_stringHash(something) != _stringHash(""), "String must be non-zero.");
         _;
     }
 
@@ -72,36 +64,28 @@ contract ServiceRegistry {
         userRegistry = UserRegistry(userRegistryAddress);
     }
 
-    function _longNameHash(LongName n) internal pure returns(bytes32) {
-        return keccak256(abi.encodePacked(n.part1, n.part2, n.part3, n.part4));
+    function _stringHash(string name) internal pure returns(bytes32) {
+        return keccak256(abi.encodePacked(name));
     }
 
-    function nameIsAvailable(bytes32 namePart1, bytes32 namePart2, bytes32 namePart3, bytes32 namePart4) public view returns(bool) {
-        return _nameIsAvailable(LongName(namePart1, namePart2, namePart3, namePart4));
-    }
-
-    function _nameIsAvailable(LongName name) internal view returns(bool) {
-        return _nameIsAvailable(_longNameHash(name));
+    function _nameIsAvailable(string serviceName) public view returns(bool) {
+        return _nameIsAvailable(_stringHash(serviceName));
     }
 
     function _nameIsAvailable(bytes32 hash) internal view returns(bool) {
         return services[hash].author == 0;
     }
 
-    function register(bytes32 serviceNamePart1, bytes32 serviceNamePart2, bytes32 serviceNamePart3, bytes32 serviceNamePart4, bytes32 authorName) public {
-        _register(LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4), authorName);
-    }
-
-    function _register(
-        LongName serviceName,
+    function register(
+        string serviceName,
         bytes32 authorName
     )
-        internal
-        nonZeroLongName(serviceName)
+        public
+        nonZeroString(serviceName)
         nonZero(authorName)
         onlyUserOwner(authorName)
     {
-        bytes32 hash = _longNameHash(serviceName);
+        bytes32 hash = _stringHash(serviceName);
         require(_nameIsAvailable(hash), "Service name already taken.");
 
         services[hash] = Service(serviceName, authorName);
@@ -109,10 +93,7 @@ contract ServiceRegistry {
     }
 
     function release(
-        bytes32 serviceNamePart1,
-        bytes32 serviceNamePart2,
-        bytes32 serviceNamePart3,
-        bytes32 serviceNamePart4,
+        string serviceName,
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
@@ -120,11 +101,11 @@ contract ServiceRegistry {
     )
         public
     {
-        _release(LongName(serviceNamePart1, serviceNamePart2, serviceNamePart3, serviceNamePart4), authorName, Version(versionMajor, versionMinor, versionPatch));
+        _release(serviceName, authorName, Version(versionMajor, versionMinor, versionPatch));
     }
 
-    function _release(LongName serviceName, bytes32 authorName, Version version) internal onlyUserOwner(authorName) {
-        bytes32 hash = _longNameHash(serviceName);
+    function _release(string serviceName, bytes32 authorName, Version version) internal onlyUserOwner(authorName) {
+        bytes32 hash = _stringHash(serviceName);
         require(services[hash].author == authorName, "Passed author does not own service.");
 
         serviceVersions[hash].push(version);
