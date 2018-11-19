@@ -15,8 +15,8 @@
     "lint:js:fix": "eslint . --fix",
     "lint:sol": "solium -d .",
     "lint:sol:fix": "solium -d . --fix",
-    "ganache": "ganache-cli",
-    "start-ganache": "ganache-cli >/dev/null & echo $! > .ganache-cli_pid",
+    "ganache": "ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price'",
+    "start-ganache": "ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price' >/dev/null & echo $! > .ganache-cli_pid",
     "stop-ganache": "kill -s QUIT $(cat .ganache-cli_pid) && rm -f .ganache-cli_pid",
     "test": "truffle test",
     "truffle": "truffle"
