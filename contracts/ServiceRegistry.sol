@@ -16,7 +16,10 @@ contract ServiceRegistry {
 
     event ServiceReleased(
         bytes32 indexed nameHash,
-        Version version
+        //Version version // does not work, at least not with web3.js/truffle
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch
     );
 
     struct Version {
@@ -56,7 +59,7 @@ contract ServiceRegistry {
     }
 
     modifier nonZeroString(string something) {
-        require(_stringHash(something) != _stringHash(""), "String must be non-zero.");
+        require(stringHash(something) != stringHash(""), "String must be non-zero.");
         _;
     }
 
@@ -64,16 +67,16 @@ contract ServiceRegistry {
         userRegistry = UserRegistry(userRegistryAddress);
     }
 
-    function _stringHash(string name) internal pure returns(bytes32) {
+    function stringHash(string name) public pure returns(bytes32) {
         return keccak256(abi.encodePacked(name));
     }
 
-    function _nameIsAvailable(string serviceName) public view returns(bool) {
-        return _nameIsAvailable(_stringHash(serviceName));
+    function nameIsAvailable(string serviceName) public view returns(bool) {
+        return services[stringHash(serviceName)].author == 0;
     }
 
-    function _nameIsAvailable(bytes32 hash) internal view returns(bool) {
-        return services[hash].author == 0;
+    function hashToName(bytes32 hashOfName) public view returns(string) {
+        return services[hashOfName].name;
     }
 
     function register(
@@ -85,9 +88,8 @@ contract ServiceRegistry {
         nonZero(authorName)
         onlyUserOwner(authorName)
     {
-        bytes32 hash = _stringHash(serviceName);
-        require(_nameIsAvailable(hash), "Service name already taken.");
-
+        require(nameIsAvailable(serviceName), "Service name already taken.");
+        bytes32 hash = stringHash(serviceName);
         services[hash] = Service(serviceName, authorName);
         emit ServiceCreated(hash, authorName);
     }
@@ -100,15 +102,12 @@ contract ServiceRegistry {
         uint versionPatch
     )
         public
+        onlyUserOwner(authorName)
     {
-        _release(serviceName, authorName, Version(versionMajor, versionMinor, versionPatch));
-    }
-
-    function _release(string serviceName, bytes32 authorName, Version version) internal onlyUserOwner(authorName) {
-        bytes32 hash = _stringHash(serviceName);
+        bytes32 hash = stringHash(serviceName);
         require(services[hash].author == authorName, "Passed author does not own service.");
 
-        serviceVersions[hash].push(version);
-        emit ServiceReleased(hash, version);
+        serviceVersions[hash].push(Version(versionMajor, versionMinor, versionPatch));
+        emit ServiceReleased(hash, versionMajor, versionMinor, versionPatch);
     }
 }
