@@ -10,27 +10,32 @@ contract ServiceRegistry {
     UserRegistry public userRegistry;
 
     event ServiceCreated(
-        bytes32 indexed name,
+        bytes32 indexed nameHash,
         bytes32 indexed author
     );
 
     event ServiceReleased(
-        bytes32 indexed name,
+        bytes32 indexed nameHash,
+        //Version version // does not work, at least not with web3.js/truffle
         uint versionMajor,
         uint versionMinor,
         uint versionPatch
     );
 
-    struct Release {
-        bytes32 name;
-        uint versionMajor; // TODO: do something with version?
+    struct Version {
+        uint versionMajor;
         uint versionMinor;
         uint versionPatch;
-        bytes signature; // TODO
     }
 
-    mapping (bytes32 => bytes32) public serviceNameToAuthor;
-    mapping (bytes32 => Release[]) public serviceNameToReleases;
+    struct Service {
+        string name;
+        bytes32 author;
+        // TODO: extra data
+    }
+
+    mapping (bytes32 => Service) public services;
+    mapping (bytes32 => Version[]) public serviceVersions;
 
     modifier onlyUserOwner(bytes32 userName) {
         // oh boy, this is all kinds of fun
@@ -53,65 +58,56 @@ contract ServiceRegistry {
         _;
     }
 
+    modifier nonZeroString(string something) {
+        require(stringHash(something) != stringHash(""), "String must be non-zero.");
+        _;
+    }
+
     constructor(address userRegistryAddress) public {
         userRegistry = UserRegistry(userRegistryAddress);
     }
 
-    function nameIsAvailable(bytes32 name) public view returns(bool) {
-        return serviceNameToAuthor[name] == 0;
+    function stringHash(string name) public pure returns(bytes32) {
+        return keccak256(abi.encodePacked(name));
+    }
+
+    function nameIsAvailable(string serviceName) public view returns(bool) {
+        return services[stringHash(serviceName)].author == 0;
+    }
+
+    function hashToName(bytes32 hashOfName) public view returns(string) {
+        return services[hashOfName].name;
     }
 
     function register(
-        bytes32 serviceName,
+        string serviceName,
         bytes32 authorName
     )
         public
-        nonZero(serviceName)
+        nonZeroString(serviceName)
         nonZero(authorName)
         onlyUserOwner(authorName)
     {
         require(nameIsAvailable(serviceName), "Service name already taken.");
-
-        serviceNameToAuthor[serviceName] = authorName;
-        emit ServiceCreated(serviceName, authorName);
+        bytes32 hash = stringHash(serviceName);
+        services[hash] = Service(serviceName, authorName);
+        emit ServiceCreated(hash, authorName);
     }
 
     function release(
-        bytes32 serviceName,
+        string serviceName,
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch
     )
         public
+        onlyUserOwner(authorName)
     {
-        _release(Release(serviceName, versionMajor, versionMinor, versionPatch, ""), authorName);
+        bytes32 hash = stringHash(serviceName);
+        require(services[hash].author == authorName, "Passed author does not own service.");
+
+        serviceVersions[hash].push(Version(versionMajor, versionMinor, versionPatch));
+        emit ServiceReleased(hash, versionMajor, versionMinor, versionPatch);
     }
-
-    function _release(Release r, bytes32 authorName) internal onlyUserOwner(authorName) {
-        require(serviceNameToAuthor[r.name] == authorName, "Passed author does not own service.");
-
-        serviceNameToReleases[r.name].push(r);
-        emit ServiceReleased(r.name, r.versionMajor, r.versionMinor, r.versionPatch);
-    }
-
-    /*
-        TODO: figure out what access method is appropriate (and possible)
-        see test 'release can be accessed via public state variable'
-
-    // returning mappings is not possible and not on the roadmap
-    function getReleases() public view returns(mapping (bytes32 => Release[])) {
-        return serviceNameToReleases;
-    }
-
-    // returning structs requires experimental compiler feature ABIEncoderV2
-    function getReleases(bytes32 serviceName) public view returns(Release[]) {
-        return serviceNameToReleases[serviceName];
-    }
-
-    // works, but handing the decomposed struct tuples requires web3.js beta release or a different client lib
-    function getRelease(bytes32 serviceName, uint index) public view returns(Release) {
-        return serviceNameToReleases[serviceName][index];
-    }
-    */
 }

@@ -41,7 +41,7 @@ contract('ServiceRegistryContract', accounts => {
         await userRegistry.register(authorName, authorAgentId)
         return (serviceRegistry.register(serviceName, authorName)).should.eventually.nested.include({
             'logs[0].event': 'ServiceCreated',
-            'logs[0].args.name': '0x53616d706c655365727669636500000000000000000000000000000000000000', // web3.fromAscii('SampleService', 64) // broken in web3 v0.2x.x
+            'logs[0].args.nameHash': '0x0937837eb6fb8dcd19b18001fc84b3e836c92f4be94a8a280dd688d5dee5e823', // web3.utils.soliditySha3('SampleService')
             'logs[0].args.author': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
         })
     })
@@ -59,10 +59,11 @@ contract('ServiceRegistryContract', accounts => {
     it('release triggers event', async () => {
         await userRegistry.register(authorName, authorAgentId)
         await serviceRegistry.register(serviceName, authorName)
-        let logEntry = (await serviceRegistry.release(serviceName, authorName, 1, 2, 3)).logs[0]
+        let result = await serviceRegistry.release(serviceName, authorName, 1, 2, 3)
+        let logEntry = result.logs[0]
 
         logEntry.event.should.equal('ServiceReleased')
-        logEntry.args.name.should.equal('0x53616d706c655365727669636500000000000000000000000000000000000000') // web3.fromAscii('SampleService', 64) // broken in web3 v0.2x.x
+        logEntry.args.nameHash.should.equal('0x0937837eb6fb8dcd19b18001fc84b3e836c92f4be94a8a280dd688d5dee5e823') // web3.fromAscii('SampleService', 64) // broken in web3 v0.2x.x
         logEntry.args.versionMajor.should.bignumber.equal(1)
         logEntry.args.versionMinor.should.bignumber.equal(2)
         logEntry.args.versionPatch.should.bignumber.equal(3)
