@@ -4,9 +4,13 @@ const UserRegistryContract = artifacts.require('UserRegistry')
 const ServiceRegistryContract = artifacts.require('ServiceRegistry')
 
 const serviceName = 'SampleService'
+const serviceNameHash = '0x0937837eb6fb8dcd19b18001fc84b3e836c92f4be94a8a280dd688d5dee5e823'  // web3.utils.soliditySha3(...) in web3 v1.x
 const authorName = 'Alice'
+const authorNameAsHex = '0x416c696365000000000000000000000000000000000000000000000000000000'  // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
 const authorAgentId = 'an-agent-id'
 const doesNotExist = 'some-name-that-does-not-exists'
+const timestamp = '1542782753'
+const nodeId = 'D48D38236745C04AA6B6700712C2972ACD0BDB0E'
 
 contract('ServiceRegistryContract', accounts => {
     let userRegistry
@@ -41,8 +45,8 @@ contract('ServiceRegistryContract', accounts => {
         await userRegistry.register(authorName, authorAgentId)
         return (serviceRegistry.register(serviceName, authorName)).should.eventually.nested.include({
             'logs[0].event': 'ServiceCreated',
-            'logs[0].args.nameHash': '0x0937837eb6fb8dcd19b18001fc84b3e836c92f4be94a8a280dd688d5dee5e823', // web3.utils.soliditySha3('SampleService')
-            'logs[0].args.author': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
+            'logs[0].args.nameHash': serviceNameHash,
+            'logs[0].args.author': authorNameAsHex
         })
     })
 
@@ -50,20 +54,20 @@ contract('ServiceRegistryContract', accounts => {
         await userRegistry.register(authorName, authorAgentId)
         await serviceRegistry.register(serviceName, authorName)
         return Promise.all([
-            (serviceRegistry.release(serviceName, authorName, 1, 1, 1)).should.be.fulfilled,
-            (serviceRegistry.release(serviceName, doesNotExist, 1, 1, 1)).should.be.rejected,
-            (serviceRegistry.release(doesNotExist, authorName, 1, 1, 1)).should.be.rejected
+            (serviceRegistry.release(serviceName, authorName, 1, 1, 1, '')).should.be.fulfilled,
+            (serviceRegistry.release(serviceName, doesNotExist, 1, 1, 1, '')).should.be.rejected,
+            (serviceRegistry.release(doesNotExist, authorName, 1, 1, 1, '')).should.be.rejected
         ])
     })
 
     it('release triggers event', async () => {
         await userRegistry.register(authorName, authorAgentId)
         await serviceRegistry.register(serviceName, authorName)
-        let result = await serviceRegistry.release(serviceName, authorName, 1, 2, 3)
+        let result = await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
         let logEntry = result.logs[0]
 
         logEntry.event.should.equal('ServiceReleased')
-        logEntry.args.nameHash.should.equal('0x0937837eb6fb8dcd19b18001fc84b3e836c92f4be94a8a280dd688d5dee5e823') // web3.fromAscii('SampleService', 64) // broken in web3 v0.2x.x
+        logEntry.args.nameHash.should.equal(serviceNameHash)
         logEntry.args.versionMajor.should.bignumber.equal(1)
         logEntry.args.versionMinor.should.bignumber.equal(2)
         logEntry.args.versionPatch.should.bignumber.equal(3)
@@ -74,7 +78,7 @@ contract('ServiceRegistryContract', accounts => {
     // async () => {
     //     await userRegistry.register(authorName, authorAgentId)
     //     await serviceRegistry.register(serviceName, authorName)
-    //     await serviceRegistry.release(serviceName, authorName, 1, 2, 3)
+    //     await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
     //     // none of are currently possible
     //     await serviceRegistry.serviceNameToReleases()
     //     await serviceRegistry.serviceNameToReleases(serviceName)
@@ -83,4 +87,20 @@ contract('ServiceRegistryContract', accounts => {
     //     await serviceRegistry.getRelease(serviceName, 0)
     //     assert(false)
     // }
+
+    it('announcing deployment triggers event', async () => {
+        // await userRegistry.register(authorName, authorAgentId)
+        // await serviceRegistry.register(serviceName, authorName)
+        // await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
+        let result = await serviceRegistry.announceDeployment(serviceName, 1, 2, 3, timestamp, nodeId)
+        let logEntry = result.logs[0]
+
+        logEntry.event.should.equal('ServiceDeployment')
+        logEntry.args.nameHash.should.equal(serviceNameHash)
+        logEntry.args.versionMajor.should.bignumber.equal(1)
+        logEntry.args.versionMinor.should.bignumber.equal(2)
+        logEntry.args.versionPatch.should.bignumber.equal(3)
+        logEntry.args.timestamp.should.bignumber.equal(timestamp)
+        logEntry.args.nodeId.should.equal(nodeId)
+    })
 })

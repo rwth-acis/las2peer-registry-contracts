@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./UserRegistry.sol";
 
+// possible TODO: move service name hash computation to clientside where possible
 
 /**
  * Service registry
@@ -22,6 +23,15 @@ contract ServiceRegistry {
         uint versionPatch
     );
 
+    event ServiceDeployment(
+        bytes32 indexed nameHash,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch,
+        uint timestamp,
+        string nodeId
+    );
+
     struct Version {
         uint versionMajor;
         uint versionMinor;
@@ -31,11 +41,15 @@ contract ServiceRegistry {
     struct Service {
         string name;
         bytes32 author;
-        // TODO: extra data
+    }
+
+    struct Metadata {
+        string dhtSupplement;
     }
 
     mapping (bytes32 => Service) public services;
     mapping (bytes32 => Version[]) public serviceVersions;
+    mapping (bytes32 => Metadata[]) public serviceVersionMetadata;
 
     modifier onlyUserOwner(bytes32 userName) {
         // oh boy, this is all kinds of fun
@@ -99,15 +113,33 @@ contract ServiceRegistry {
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
-        uint versionPatch
+        uint versionPatch,
+        string dhtSupplement
     )
-        public
-        onlyUserOwner(authorName)
+    public
+    onlyUserOwner(authorName)
     {
         bytes32 hash = stringHash(serviceName);
         require(services[hash].author == authorName, "Passed author does not own service.");
 
         serviceVersions[hash].push(Version(versionMajor, versionMinor, versionPatch));
+        serviceVersionMetadata[hash].push(Metadata(dhtSupplement));
         emit ServiceReleased(hash, versionMajor, versionMinor, versionPatch);
+    }
+
+    // TODO: is there a way to ensure that the nodeId is "owned" by the sender?
+    // of course not, since there's no concept of users owning nodes so far
+    // we could let users sign the message to add some accountability instead
+    function announceDeployment(
+        string serviceName,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch,
+        uint timestamp,
+        string nodeId
+    )
+        public
+    {
+        emit ServiceDeployment(stringHash(serviceName), versionMajor, versionMinor, versionPatch, timestamp, nodeId);
     }
 }
