@@ -25,6 +25,7 @@ contract ServiceRegistry {
 
     event ServiceDeployment(
         bytes32 indexed nameHash,
+        string className,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
@@ -132,6 +133,7 @@ contract ServiceRegistry {
     // we could let users sign the message to add some accountability instead
     function announceDeployment(
         string serviceName,
+        string className,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
@@ -140,6 +142,7 @@ contract ServiceRegistry {
     )
         public
     {
-        emit ServiceDeployment(stringHash(serviceName), versionMajor, versionMinor, versionPatch, timestamp, nodeId);
+        emit ServiceDeployment(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, timestamp,
+                               nodeId);
     }
 }

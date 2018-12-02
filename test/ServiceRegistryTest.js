@@ -3,11 +3,12 @@ require('./support/setup.js')
 const UserRegistryContract = artifacts.require('UserRegistry')
 const ServiceRegistryContract = artifacts.require('ServiceRegistry')
 
-const serviceName = 'SampleService'
-const serviceNameHash = '0x0937837eb6fb8dcd19b18001fc84b3e836c92f4be94a8a280dd688d5dee5e823'  // web3.utils.soliditySha3(...) in web3 v1.x
+const serviceName = 'com.example.services.exampleService'
+const serviceNameHash = '0xf0093192310322844a7350f5e148a98c685e662693ef2997decaa71c489b7485'  // web3.utils.soliditySha3(...) in web3 v1.x
+const serviceClassName = 'ExampleService'
 const authorName = 'Alice'
 const authorNameAsHex = '0x416c696365000000000000000000000000000000000000000000000000000000'  // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
-const authorAgentId = 'an-agent-id'
+const authorAgentId = '1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480'
 const doesNotExist = 'some-name-that-does-not-exists'
 const timestamp = '1542782753'
 const nodeId = 'D48D38236745C04AA6B6700712C2972ACD0BDB0E'
@@ -92,11 +93,12 @@ contract('ServiceRegistryContract', accounts => {
         // await userRegistry.register(authorName, authorAgentId)
         // await serviceRegistry.register(serviceName, authorName)
         // await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
-        let result = await serviceRegistry.announceDeployment(serviceName, 1, 2, 3, timestamp, nodeId)
+        let result = await serviceRegistry.announceDeployment(serviceName, serviceClassName, 1, 2, 3, timestamp, nodeId)
         let logEntry = result.logs[0]
 
         logEntry.event.should.equal('ServiceDeployment')
         logEntry.args.nameHash.should.equal(serviceNameHash)
+        logEntry.args.className.should.equal(serviceClassName)
         logEntry.args.versionMajor.should.bignumber.equal(1)
         logEntry.args.versionMinor.should.bignumber.equal(2)
         logEntry.args.versionPatch.should.bignumber.equal(3)
