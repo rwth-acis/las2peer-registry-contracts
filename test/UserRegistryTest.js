@@ -64,7 +64,9 @@ contract('UserRegistryContract', accounts => {
     })
 
     it('username access restriction works (for setting supplement)', async function () {
-        if (accounts.length < 2) {
+        if (accounts.length < 2 || accounts[0] === accounts[1]) {
+            // this test requires two different accounts
+            // some test setups may not provide that
             this.skip()
         }
 
