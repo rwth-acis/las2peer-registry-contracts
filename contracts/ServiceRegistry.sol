@@ -33,6 +33,15 @@ contract ServiceRegistry {
         string nodeId
     );
 
+    event ServiceDeploymentEnd(
+        bytes32 indexed nameHash,
+        string className,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch,
+        string nodeId
+    );
+
     struct Version {
         uint versionMajor;
         uint versionMinor;
@@ -144,5 +153,18 @@ contract ServiceRegistry {
     {
         emit ServiceDeployment(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, timestamp,
                                nodeId);
+    }
+
+    function announceDeploymentEnd(
+        string serviceName,
+        string className,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch,
+        string nodeId
+    )
+    public
+    {
+        emit ServiceDeploymentEnd(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, nodeId);
     }
 }

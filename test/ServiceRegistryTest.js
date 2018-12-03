@@ -80,7 +80,7 @@ contract('ServiceRegistryContract', accounts => {
     //     await userRegistry.register(authorName, authorAgentId)
     //     await serviceRegistry.register(serviceName, authorName)
     //     await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
-    //     // none of are currently possible
+    //     // none of these are currently possible
     //     await serviceRegistry.serviceNameToReleases()
     //     await serviceRegistry.serviceNameToReleases(serviceName)
     //     await serviceRegistry.getMapping()
@@ -90,9 +90,6 @@ contract('ServiceRegistryContract', accounts => {
     // }
 
     it('announcing deployment triggers event', async () => {
-        // await userRegistry.register(authorName, authorAgentId)
-        // await serviceRegistry.register(serviceName, authorName)
-        // await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
         let result = await serviceRegistry.announceDeployment(serviceName, serviceClassName, 1, 2, 3, timestamp, nodeId)
         let logEntry = result.logs[0]
 
@@ -103,6 +100,19 @@ contract('ServiceRegistryContract', accounts => {
         logEntry.args.versionMinor.should.bignumber.equal(2)
         logEntry.args.versionPatch.should.bignumber.equal(3)
         logEntry.args.timestamp.should.bignumber.equal(timestamp)
+        logEntry.args.nodeId.should.equal(nodeId)
+    })
+
+    it('announcing deployment end triggers event', async () => {
+        let result = await serviceRegistry.announceDeploymentEnd(serviceName, serviceClassName, 1, 2, 3, nodeId)
+        let logEntry = result.logs[0]
+
+        logEntry.event.should.equal('ServiceDeploymentEnd')
+        logEntry.args.nameHash.should.equal(serviceNameHash)
+        logEntry.args.className.should.equal(serviceClassName)
+        logEntry.args.versionMajor.should.bignumber.equal(1)
+        logEntry.args.versionMinor.should.bignumber.equal(2)
+        logEntry.args.versionPatch.should.bignumber.equal(3)
         logEntry.args.nodeId.should.equal(nodeId)
     })
 })
