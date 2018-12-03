@@ -59,7 +59,7 @@ contract('UserRegistryContract', accounts => {
         await userRegistry.setSupplement(name, text)
 
         let registryEntry = await userRegistry.users(name)
-        const supplementIndex = 3;
+        const supplementIndex = 3
         return (web3.toAscii(registryEntry[supplementIndex])).should.equal(text)
     })
 

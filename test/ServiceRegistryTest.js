@@ -4,10 +4,10 @@ const UserRegistryContract = artifacts.require('UserRegistry')
 const ServiceRegistryContract = artifacts.require('ServiceRegistry')
 
 const serviceName = 'com.example.services.exampleService'
-const serviceNameHash = '0xf0093192310322844a7350f5e148a98c685e662693ef2997decaa71c489b7485'  // web3.utils.soliditySha3(...) in web3 v1.x
+const serviceNameHash = '0xf0093192310322844a7350f5e148a98c685e662693ef2997decaa71c489b7485' // web3.utils.soliditySha3(...) in web3 v1.x
 const serviceClassName = 'ExampleService'
 const authorName = 'Alice'
-const authorNameAsHex = '0x416c696365000000000000000000000000000000000000000000000000000000'  // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
+const authorNameAsHex = '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
 const authorAgentId = '1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480'
 const doesNotExist = 'some-name-that-does-not-exists'
 const timestamp = '1542782753'

@@ -151,8 +151,7 @@ contract ServiceRegistry {
     )
         public
     {
-        emit ServiceDeployment(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, timestamp,
-                               nodeId);
+        emit ServiceDeployment(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, timestamp, nodeId);
     }
 
     function announceDeploymentEnd(
@@ -163,7 +162,7 @@ contract ServiceRegistry {
         uint versionPatch,
         string nodeId
     )
-    public
+        public
     {
         emit ServiceDeploymentEnd(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, nodeId);
     }
