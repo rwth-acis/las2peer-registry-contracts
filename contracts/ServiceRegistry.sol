@@ -77,6 +77,11 @@ contract ServiceRegistry {
         _;
     }
 
+    modifier onlyRegisteredService(string serviceName) {
+        require(services[stringHash(serviceName)].author != 0, "Service must be registered.");
+        _;
+    }
+
     modifier nonZero(bytes32 something) {
         require(something != 0, "Whatever this is, it must be non-zero.");
         _;
@@ -150,6 +155,7 @@ contract ServiceRegistry {
         string nodeId
     )
         public
+        onlyRegisteredService(serviceName)
     {
         emit ServiceDeployment(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, timestamp, nodeId);
     }
@@ -163,6 +169,7 @@ contract ServiceRegistry {
         string nodeId
     )
         public
+        onlyRegisteredService(serviceName)
     {
         emit ServiceDeploymentEnd(stringHash(serviceName), className, versionMajor, versionMinor, versionPatch, nodeId);
     }

@@ -90,6 +90,10 @@ contract('ServiceRegistryContract', accounts => {
     // }
 
     it('announcing deployment triggers event', async () => {
+        await userRegistry.register(authorName, authorAgentId)
+        await serviceRegistry.register(serviceName, authorName)
+        await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
+
         let result = await serviceRegistry.announceDeployment(serviceName, serviceClassName, 1, 2, 3, timestamp, nodeId)
         let logEntry = result.logs[0]
 
@@ -104,6 +108,10 @@ contract('ServiceRegistryContract', accounts => {
     })
 
     it('announcing deployment end triggers event', async () => {
+        await userRegistry.register(authorName, authorAgentId)
+        await serviceRegistry.register(serviceName, authorName)
+        await serviceRegistry.release(serviceName, authorName, 1, 2, 3, '')
+
         let result = await serviceRegistry.announceDeploymentEnd(serviceName, serviceClassName, 1, 2, 3, nodeId)
         let logEntry = result.logs[0]
 
