@@ -11,19 +11,19 @@
   "scripts": {
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
-    "lint:js": "eslint .",
-    "lint:js:fix": "eslint . --fix",
-    "lint:sol": "solium -d .",
-    "lint:sol:fix": "solium -d . --fix",
-    "ganache": "ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price'",
-    "start-ganache": "ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price' >/dev/null & echo $! > .ganache-cli_pid",
+    "lint:js": "node_modules/.bin/eslint .",
+    "lint:js:fix": "node_modules/.bin/eslint . --fix",
+    "lint:sol": "node_modules/.bin/solium -d .",
+    "lint:sol:fix": "node_modules/.bin/solium -d . --fix",
+    "ganache": "node_modules/.bin/ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price'",
+    "start-ganache": "node_modules/.bin/ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price' >/dev/null & echo $! > .ganache-cli_pid",
     "stop-ganache": "kill -s QUIT $(cat .ganache-cli_pid) && rm -f .ganache-cli_pid",
-    "test": "truffle test",
-    "truffle": "truffle"
+    "test": "node_modules/.bin/truffle test",
+    "truffle": "node_modules/.bin/truffle"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/rwth-acis/las2peer-registry-contracts.git"
+    "type": "git",
+    "url": "https://github.com/rwth-acis/las2peer-registry-contracts.git"
   },
   "author": "Tom Janson <tom.janson@rwth-aachen.de>",
   "license": "BSD-3-Clause",
