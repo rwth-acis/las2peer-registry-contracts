@@ -17,7 +17,6 @@ contract UserRegistry {
         bytes32 name;
         bytes agentId; // 64 bytes?
         address owner;
-        bytes dhtSupplement; // TODO: devise storage format
     }
 
     mapping (bytes32 => User) public users;
@@ -47,10 +46,6 @@ contract UserRegistry {
     function register(bytes32 name, bytes agentId) public {
         _register(User(name, agentId, msg.sender, ""));
         emit UserRegistered(name);
-    }
-
-    function setSupplement(bytes32 name, bytes supplement) public onlyOwnName(name) {
-        users[name].dhtSupplement = supplement;
     }
 
     function transfer(bytes32 name, address newOwner) public onlyOwnName(name) {

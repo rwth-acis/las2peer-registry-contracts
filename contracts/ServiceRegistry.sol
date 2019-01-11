@@ -2,7 +2,6 @@ pragma solidity ^0.4.24;
 
 import "./UserRegistry.sol";
 
-// possible TODO: move service name hash computation to clientside where possible
 
 /**
  * Service registry
@@ -53,13 +52,8 @@ contract ServiceRegistry {
         bytes32 author;
     }
 
-    struct Metadata {
-        string dhtSupplement;
-    }
-
     mapping (bytes32 => Service) public services;
     mapping (bytes32 => Version[]) public serviceVersions;
-    mapping (bytes32 => Metadata[]) public serviceVersionMetadata;
 
     modifier onlyUserOwner(bytes32 userName) {
         // oh boy, this is all kinds of fun
@@ -128,8 +122,7 @@ contract ServiceRegistry {
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
-        uint versionPatch,
-        string dhtSupplement
+        uint versionPatch
     )
     public
     onlyUserOwner(authorName)
@@ -138,7 +131,6 @@ contract ServiceRegistry {
         require(services[hash].author == authorName, "Passed author does not own service.");
 
         serviceVersions[hash].push(Version(versionMajor, versionMinor, versionPatch));
-        serviceVersionMetadata[hash].push(Metadata(dhtSupplement));
         emit ServiceReleased(hash, versionMajor, versionMinor, versionPatch);
     }
 
