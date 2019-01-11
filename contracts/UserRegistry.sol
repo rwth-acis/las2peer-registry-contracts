@@ -47,7 +47,7 @@ contract UserRegistry {
     }
 
     // convenience function mainly for other contracts
-    function isOwner(address claimedOwner, bytes32 userName) public returns(bool) {
+    function isOwner(address claimedOwner, bytes32 userName) public view returns(bool) {
         return users[userName].owner == claimedOwner;
     }
 
@@ -93,7 +93,7 @@ contract UserRegistry {
         require(nameIsAvailable(user.name), "Name already taken or invalid.");
 
         users[user.name] = user;
-        emit UserRegistered(name);
+        emit UserRegistered(user.name);
     }
 
     function _transfer(bytes32 name, address newOwner) private {

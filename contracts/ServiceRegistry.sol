@@ -147,7 +147,7 @@ contract ServiceRegistry {
         public
         onlyRegisteredService(serviceName)
     {
-        byte32 nameHash = stringHash(serviceName);
+        bytes32 nameHash = stringHash(serviceName);
         emit ServiceDeployment(nameHash, className, versionMajor, versionMinor, versionPatch, timestamp, nodeId);
     }
 
@@ -162,7 +162,7 @@ contract ServiceRegistry {
         public
         onlyRegisteredService(serviceName)
     {
-        byte32 nameHash = stringHash(serviceName);
+        bytes32 nameHash = stringHash(serviceName);
         emit ServiceDeploymentEnd(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId);
     }
 

@@ -47,9 +47,9 @@ library Delegation {
      * The call can be triggered at any time, possibly repeatedly (!), by
      * any sender.
      *
-     * @methodId method ID a.k.a. function selector [1]
-     * @args (non-packed) encoded function arguments
-     * @signature eth_sign compatible signature of (non-packed) method ID and arguments
+     * @param methodId method ID a.k.a. function selector [1]
+     * @param args (non-packed) encoded function arguments
+     * @param signature eth_sign compatible signature of (non-packed) method ID and arguments
      *
      * [1]: https://solidity.readthedocs.io/en/develop/abi-spec.html#function-selector
      */
@@ -63,12 +63,12 @@ library Delegation {
      */
     function _checkSignature(bytes32 hashOfMessage, bytes signature) internal pure returns(address) {
         address signer = ECDSA.recover(hashOfMessage, signature);
-        require(keccak256(signer) != keccak256(0), "Signature not valid.");
+        require(keccak256(abi.encodePacked(signer)) != keccak256(abi.encodePacked(address(0))), "Signature not valid.");
         return signer;
     }
 
     function _hashCall(bytes methodId, bytes args) internal pure returns(bytes32) {
-        return _hashForSignature(keccak256(methodId, args));
+        return _hashForSignature(keccak256(abi.encode(methodId, args)));
     }
 
     /**
@@ -77,6 +77,6 @@ library Delegation {
      */
     function _hashForSignature(bytes32 contentHash) internal pure returns(bytes32) {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        return keccak256(prefix, contentHash);
+        return keccak256(abi.encode(prefix, contentHash));
     }
 }

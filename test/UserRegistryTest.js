@@ -9,9 +9,12 @@ const UserRegistryContract = artifacts.require('UserRegistry')
 //     "either return or notify(done) must be used with promise assertions"
 //     https://www.chaijs.com/plugins/chai-as-promised/
 
-const name = 'Alice'
-const agentId = 'an-agent-id'
-const text = 'lorem ipsum dolor sit amet'
+const agent = {
+    name: 'Alice',
+    nameAsHex: '0x416c696365000000000000000000000000000000000000000000000000000000', // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
+    id: '1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480',
+    publicKey: 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB'
+}
 
 contract('UserRegistryContract', accounts => {
     let userRegistry
@@ -29,54 +32,29 @@ contract('UserRegistryContract', accounts => {
     )
 
     it('example name is valid', () =>
-        (userRegistry.nameIsValid(name)).should.eventually.be.true
+        (userRegistry.nameIsValid(agent.name)).should.eventually.be.true
     )
 
     it('example name is not taken', () =>
-        (userRegistry.nameIsTaken(name)).should.eventually.be.false
+        (userRegistry.nameIsTaken(agent.name)).should.eventually.be.false
     )
 
     it('registration is possible, emits event, and makes name taken/unavailable', async () => {
-        let registrationResult = await userRegistry.register(name, agentId)
+        let registrationResult = await userRegistry.register(agent.name, agent.id, agent.publicKey)
 
         return Promise.all([
             registrationResult.should.nested.include({
                 'logs[0].event': 'UserRegistered',
-                'logs[0].args.name': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii(name, 64) // broken in web3 v0.2x.x
+                'logs[0].args.name': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii(agent.name, 64) // broken in web3 v0.2x.x
             }),
-            (userRegistry.nameIsTaken(name)).should.eventually.be.true,
-            (userRegistry.nameIsAvailable(name)).should.eventually.be.false
+            (userRegistry.nameIsTaken(agent.name)).should.eventually.be.true,
+            (userRegistry.nameIsAvailable(agent.name)).should.eventually.be.false
         ])
     })
 
     it('registration with duplicate name is not possible', async () => {
-        await userRegistry.register(name, agentId)
-        return (userRegistry.register(name, agentId)).should.be.rejected
-    })
-
-    it('setting a supplement and reading it from public var works', async () => {
-        await userRegistry.register(name, agentId)
-        await userRegistry.setSupplement(name, text)
-
-        let registryEntry = await userRegistry.users(name)
-        const supplementIndex = 3
-        return (web3.toAscii(registryEntry[supplementIndex])).should.equal(text)
-    })
-
-    it('username access restriction works (for setting supplement)', async function () {
-        if (accounts.length < 2 || accounts[0] === accounts[1]) {
-            // this test requires two different accounts
-            // some test setups may not provide that
-            this.skip()
-        }
-
-        await userRegistry.register(name, agentId, { from: accounts[1] })
-
-        // https://github.com/domenic/chai-as-promised#multiple-promise-assertions
-        return Promise.all([
-            (userRegistry.setSupplement(name, text, { from: accounts[0] })).should.be.rejected,
-            (userRegistry.setSupplement(name, text, { from: accounts[1] })).should.be.fulfilled
-        ])
+        await userRegistry.register(agent.name, agent.id, agent.publicKey)
+        return (userRegistry.register(agent.name, agent.id, agent.publicKey)).should.be.rejected
     })
 
     it('name can be transferred', async function () {
@@ -84,13 +62,12 @@ contract('UserRegistryContract', accounts => {
             this.skip()
         }
 
-        await userRegistry.register(name, agentId, { from: accounts[0] })
-        let transferResult = await userRegistry.transfer(name, accounts[1])
+        await userRegistry.register(agent.name, agent.id, agent.publicKey, { from: accounts[0] })
+        let transferResult = await userRegistry.transfer(agent.name, accounts[1])
         return Promise.all([
-            (userRegistry.setSupplement(name, text, { from: accounts[1] })).should.be.fulfilled,
             transferResult.should.nested.include({
                 'logs[0].event': 'UserTransferred',
-                'logs[0].args.name': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii(name, 64) // broken
+                'logs[0].args.name': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii(agent.name, 64) // broken
             })
         ])
     })
