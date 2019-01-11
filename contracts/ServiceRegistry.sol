@@ -111,7 +111,7 @@ contract ServiceRegistry {
     )
         public
     {
-        require(userRegistry.isOwner(msg.sender, authorName), "Sender must own claimed author name.");
+        require(userRegistry.isOwner(msg.sender, authorName), "Sender must own author name to release.");
         _release(serviceName, authorName, versionMajor, versionMinor, versionPatch, hash);
     }
 
@@ -131,7 +131,7 @@ contract ServiceRegistry {
         bytes memory args = abi.encode(serviceName, authorName, versionMajor, versionMinor, versionPatch);
         address signer = Delegation.checkConsent(methodId, args, consentSignature);
 
-        require(userRegistry.isOwner(signer, authorName));
+        require(userRegistry.isOwner(signer, authorName), "Signer must own author name to release.");
         _release(serviceName, authorName, versionMajor, versionMinor, versionPatch, hash);
     }
 

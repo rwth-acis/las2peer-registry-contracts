@@ -47,7 +47,7 @@ contract UserRegistry {
     }
 
     // convenience function mainly for other contracts
-    function isOwner(address claimedOwner, bytes32 userName) returns(bool) {
+    function isOwner(address claimedOwner, bytes32 userName) public returns(bool) {
         return users[userName].owner == claimedOwner;
     }
 
@@ -55,7 +55,7 @@ contract UserRegistry {
         _register(User(name, agentId, publicKey, msg.sender));
     }
 
-    function delegatedRegister(bytes32 name, bytes agentId, bytes publicKey, bytes consentSignature) {
+    function delegatedRegister(bytes32 name, bytes agentId, bytes publicKey, bytes consentSignature) public {
         // first 8 chars of keccak("register(bytes32,bytes,bytes)")
         bytes memory methodId = hex"ebc1b8ff";
         bytes memory args = abi.encode(name, agentId, publicKey);
