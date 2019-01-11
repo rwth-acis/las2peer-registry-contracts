@@ -1,6 +1,8 @@
 pragma solidity ^0.4.24;
 
 
+import { Delegation } from "./Delegation.sol";
+
 /**
  * User name registry
  *
@@ -15,7 +17,8 @@ contract UserRegistry {
 
     struct User {
         bytes32 name;
-        bytes agentId; // 64 bytes?
+        bytes agentId;
+        bytes publicKey;
         address owner;
     }
 
@@ -43,22 +46,58 @@ contract UserRegistry {
         return (nameIsValid(name) && !nameIsTaken(name));
     }
 
-    function register(bytes32 name, bytes agentId) public {
-        _register(User(name, agentId, msg.sender, ""));
-        emit UserRegistered(name);
+    // convenience function mainly for other contracts
+    function isOwner(address claimedOwner, bytes32 userName) returns(bool) {
+        return users[userName].owner == claimedOwner;
+    }
+
+    function register(bytes32 name, bytes agentId, bytes publicKey) public {
+        _register(User(name, agentId, publicKey, msg.sender));
+    }
+
+    function delegatedRegister(bytes32 name, bytes agentId, bytes publicKey, bytes consentSignature) {
+        // first 8 chars of keccak("register(bytes32,bytes,bytes)")
+        bytes memory methodId = hex"ebc1b8ff";
+        bytes memory args = abi.encode(name, agentId, publicKey);
+        address signer = Delegation.checkConsent(methodId, args, consentSignature);
+
+        _register(User(name, agentId, publicKey, signer));
     }
 
     function transfer(bytes32 name, address newOwner) public onlyOwnName(name) {
-        users[name].owner = newOwner;
-        emit UserTransferred(name);
+        _transfer(name, newOwner);
     }
 
-    function _register(User user) internal {
+    // FIXME insecure!: the signature allows the transfer to be initiated several times
+    // (note that there is no nonce that only allows it once)
+    // this could be a problem if a name is transfered back and forth:
+    // premise: owner A -> signs delegated transfer to B -> transfers back to A
+    // then: the signature can be used to once again transfer to B
+    // the premise is unusual, but still it shouldn't be allowed
+    /*
+    function delegatedTransfer(bytes32 name, address newOwner, bytes consentSignature) public {
+        // first 8 chars of keccak("transfer(bytes32,address)")
+        bytes memory methodId = hex"79ce9fac";
+        bytes memory args = abi.encode(name, newOwner);
+        address signer = Delegation.checkConsent(methodId, args, consentSignature);
+
+        require(users[name].owner == signer);
+        _transfer(name, newOwner, signer);
+    }
+    */
+
+    function _register(User user) private {
         require(user.name != 0, "Name must be non-zero.");
         require(user.owner != 0, "Owner address must be non-zero.");
 
         require(nameIsAvailable(user.name), "Name already taken or invalid.");
 
         users[user.name] = user;
+        emit UserRegistered(name);
+    }
+
+    function _transfer(bytes32 name, address newOwner) private {
+        users[name].owner = newOwner;
+        emit UserTransferred(name);
     }
 }
