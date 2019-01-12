@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 import { Delegation } from "./Delegation.sol";
@@ -38,7 +38,7 @@ contract UserRegistry {
 
     function nameIsTaken(bytes32 name) public view returns(bool) {
         User storage maybeEmpty = users[name];
-        return maybeEmpty.owner != 0;
+        return maybeEmpty.owner != address(0);
     }
 
     // eh, this should have a better name to indicate that available =/= !taken
@@ -51,11 +51,18 @@ contract UserRegistry {
         return users[userName].owner == claimedOwner;
     }
 
-    function register(bytes32 name, bytes agentId, bytes publicKey) public {
+    function register(bytes32 name, bytes memory agentId, bytes memory publicKey) public {
         _register(User(name, agentId, publicKey, msg.sender));
     }
 
-    function delegatedRegister(bytes32 name, bytes agentId, bytes publicKey, bytes consentSignature) public {
+    function delegatedRegister(
+        bytes32 name,
+        bytes memory agentId,
+        bytes memory publicKey,
+        bytes memory consentSignature
+    )
+        public
+    {
         // first 8 chars of keccak("register(bytes32,bytes,bytes)")
         bytes memory methodId = hex"ebc1b8ff";
         bytes memory args = abi.encode(name, agentId, publicKey);
@@ -75,7 +82,7 @@ contract UserRegistry {
     // then: the signature can be used to once again transfer to B
     // the premise is unusual, but still it shouldn't be allowed
     /*
-    function delegatedTransfer(bytes32 name, address newOwner, bytes consentSignature) public {
+    function delegatedTransfer(bytes32 name, address newOwner, bytes memory consentSignature) public {
         // first 8 chars of keccak("transfer(bytes32,address)")
         bytes memory methodId = hex"79ce9fac";
         bytes memory args = abi.encode(name, newOwner);
@@ -86,9 +93,9 @@ contract UserRegistry {
     }
     */
 
-    function _register(User user) private {
-        require(user.name != 0, "Name must be non-zero.");
-        require(user.owner != 0, "Owner address must be non-zero.");
+    function _register(User memory user) private {
+        require(user.name != bytes32(0), "Name must be non-zero.");
+        require(user.owner != address(0), "Owner address must be non-zero.");
 
         require(nameIsAvailable(user.name), "Name already taken or invalid.");
 

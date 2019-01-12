@@ -1,6 +1,6 @@
 {
   "name": "las2peer-registry-contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Solidity smart contracts for the las2peer Service Registry",
   "files": [
     "contracts",
@@ -32,17 +32,17 @@
   },
   "homepage": "https://github.com/rwth-acis/las2peer-registry-contracts",
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "chai-bignumber": "^2.0.2",
+    "chai-bn": "^0.1.0",
     "eslint": "^5.6.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-node": "^8.0.1",
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "ganache-cli": "^6.1.8",
     "solium": "^1.1.8",
-    "truffle": "^4.1.14"
+    "truffle": "^5.0.1"
   }
 }

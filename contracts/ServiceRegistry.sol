@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./UserRegistry.sol";
 
@@ -55,7 +55,7 @@ contract ServiceRegistry {
     mapping (bytes32 => Service) public services;
     mapping (bytes32 => Version[]) public serviceVersions;
 
-    modifier onlyRegisteredService(string serviceName) {
+    modifier onlyRegisteredService(string memory serviceName) {
         require(services[stringHash(serviceName)].author != 0, "Service must be registered.");
         _;
     }
@@ -65,7 +65,7 @@ contract ServiceRegistry {
         _;
     }
 
-    modifier nonZeroString(string something) {
+    modifier nonZeroString(string memory something) {
         require(stringHash(something) != stringHash(""), "String must be non-zero.");
         _;
     }
@@ -74,24 +74,24 @@ contract ServiceRegistry {
         userRegistry = UserRegistry(userRegistryAddress);
     }
 
-    function stringHash(string name) public pure returns(bytes32) {
+    function stringHash(string memory name) public pure returns(bytes32) {
         return keccak256(abi.encodePacked(name));
     }
 
-    function nameIsAvailable(string serviceName) public view returns(bool) {
+    function nameIsAvailable(string memory serviceName) public view returns(bool) {
         return services[stringHash(serviceName)].author == 0;
     }
 
-    function hashToName(bytes32 hashOfName) public view returns(string) {
+    function hashToName(bytes32 hashOfName) public view returns(string memory) {
         return services[hashOfName].name;
     }
 
-    function register(string serviceName, bytes32 authorName) public {
+    function register(string memory serviceName, bytes32 authorName) public {
         require(userRegistry.isOwner(msg.sender, authorName), "Sender must own author name to register service.");
         _register(serviceName, authorName);
     }
 
-    function delegatedRegister(string serviceName, bytes32 authorName, bytes consentSignature) public {
+    function delegatedRegister(string memory serviceName, bytes32 authorName, bytes memory consentSignature) public {
         // first 8 chars of keccak("register(string,bytes32)")
         bytes memory methodId = hex"656afdee";
         bytes memory args = abi.encode(serviceName, authorName);
@@ -102,12 +102,12 @@ contract ServiceRegistry {
     }
 
     function release(
-        string serviceName,
+        string memory serviceName,
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        bytes hash
+        bytes memory hash
     )
         public
     {
@@ -116,13 +116,13 @@ contract ServiceRegistry {
     }
 
     function delegatedRelease(
-        string serviceName,
+        string memory serviceName,
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        bytes hash,
-        bytes consentSignature
+        bytes memory hash,
+        bytes memory consentSignature
     )
         public
     {
@@ -136,13 +136,13 @@ contract ServiceRegistry {
     }
 
     function announceDeployment(
-        string serviceName,
-        string className,
+        string memory serviceName,
+        string memory className,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
         uint timestamp,
-        string nodeId
+        string memory nodeId
     )
         public
         onlyRegisteredService(serviceName)
@@ -152,12 +152,12 @@ contract ServiceRegistry {
     }
 
     function announceDeploymentEnd(
-        string serviceName,
-        string className,
+        string memory serviceName,
+        string memory className,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        string nodeId
+        string memory nodeId
     )
         public
         onlyRegisteredService(serviceName)
@@ -167,7 +167,7 @@ contract ServiceRegistry {
     }
 
     function _register(
-        string serviceName,
+        string memory serviceName,
         bytes32 authorName
     )
     private
@@ -181,12 +181,12 @@ contract ServiceRegistry {
     }
 
     function _release(
-        string serviceName,
+        string memory serviceName,
         bytes32 authorName,
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        bytes hash
+        bytes memory hash
     )
     private
     nonZeroString(serviceName)

@@ -1,23 +1,23 @@
-require('./support/setup.js')
+const { BN } = require('./support/setup')
 
 const UserRegistryContract = artifacts.require('UserRegistry')
 const ServiceRegistryContract = artifacts.require('ServiceRegistry')
 
 const service = {
     name: 'com.example.services.exampleService',
-    nameHash: '0xf0093192310322844a7350f5e148a98c685e662693ef2997decaa71c489b7485', // web3.utils.soliditySha3(...) in web3 v1.x
+    nameHash: web3.utils.soliditySha3('com.example.services.exampleService'),
     className: 'ExampleService',
-    hash: '50047cbf35f98cb1c7e46c24afa32078'
+    hash: '0x50047cbf35f98cb1c7e46c24afa32078'
 }
 
 const author = {
-    name: 'Alice',
-    nameAsHex: '0x416c696365000000000000000000000000000000000000000000000000000000', // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
-    id: '1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480',
-    publicKey: 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB'
+    name: web3.utils.utf8ToHex('Alice'),
+    nameAsHex: '0x416c696365000000000000000000000000000000000000000000000000000000', // in contrast to name this is not packed
+    id: '0x1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480',
+    publicKey: web3.utils.utf8ToHex('MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB')
 }
 
-const doesNotExist = 'some-name-that-does-not-exists'
+const doesntExist = 'some-name-that-does-not-exists'
 const timestamp = '1542782753'
 const nodeId = 'D48D38236745C04AA6B6700712C2972ACD0BDB0E'
 
@@ -40,7 +40,7 @@ contract('ServiceRegistryContract', accounts => {
 
         return Promise.all([
             (serviceRegistry.register(service.name, author.name)).should.be.fulfilled,
-            (serviceRegistry.register(service.name, doesNotExist)).should.be.rejected
+            (serviceRegistry.register(service.name, doesntExist)).should.be.rejected
         ])
     })
 
@@ -64,22 +64,22 @@ contract('ServiceRegistryContract', accounts => {
         await serviceRegistry.register(service.name, author.name)
         return Promise.all([
             (serviceRegistry.release(service.name, author.name, 1, 1, 1, service.hash)).should.be.fulfilled,
-            (serviceRegistry.release(service.name, doesNotExist, 1, 1, 1, '')).should.be.rejected,
-            (serviceRegistry.release(doesNotExist, author.name, 1, 1, 1, '')).should.be.rejected
+            (serviceRegistry.release(service.name, doesntExist, 1, 1, 1, service.hash)).should.be.rejected,
+            (serviceRegistry.release(doesntExist, author.name, 1, 1, 1, service.hash)).should.be.rejected
         ])
     })
 
     it('release triggers event', async () => {
         await userRegistry.register(author.name, author.id, author.publicKey)
         await serviceRegistry.register(service.name, author.name)
-        let result = await serviceRegistry.release(service.name, author.name, 1, 2, 3, '')
+        let result = await serviceRegistry.release(service.name, author.name, 1, 2, 3, service.hash)
         let logEntry = result.logs[0]
 
         logEntry.event.should.equal('ServiceReleased')
         logEntry.args.nameHash.should.equal(service.nameHash)
-        logEntry.args.versionMajor.should.bignumber.equal(1)
-        logEntry.args.versionMinor.should.bignumber.equal(2)
-        logEntry.args.versionPatch.should.bignumber.equal(3)
+        logEntry.args.versionMajor.should.bignumber.equal(new BN(1))
+        logEntry.args.versionMinor.should.bignumber.equal(new BN(2))
+        logEntry.args.versionPatch.should.bignumber.equal(new BN(3))
     })
 
     // returning structs is problematic, see comments at bottom of ServiceRegistry.sol
@@ -87,7 +87,7 @@ contract('ServiceRegistryContract', accounts => {
     // async () => {
     //     await userRegistry.register(author.name, author.id, author.publicKey)
     //     await serviceRegistry.register(service.name, author.name)
-    //     await serviceRegistry.release(service.name, author.name, 1, 2, 3, '')
+    //     await serviceRegistry.release(service.name, author.name, 1, 2, 3, service.hash)
     //     // none of these are currently possible
     //     await serviceRegistry.service.nameToReleases()
     //     await serviceRegistry.service.nameToReleases(service.name)
@@ -100,7 +100,7 @@ contract('ServiceRegistryContract', accounts => {
     it('announcing deployment triggers event', async () => {
         await userRegistry.register(author.name, author.id, author.publicKey)
         await serviceRegistry.register(service.name, author.name)
-        await serviceRegistry.release(service.name, author.name, 1, 2, 3, '')
+        await serviceRegistry.release(service.name, author.name, 1, 2, 3, service.hash)
 
         let result = await serviceRegistry.announceDeployment(service.name, service.className, 1, 2, 3, timestamp, nodeId)
         let logEntry = result.logs[0]
@@ -108,9 +108,9 @@ contract('ServiceRegistryContract', accounts => {
         logEntry.event.should.equal('ServiceDeployment')
         logEntry.args.nameHash.should.equal(service.nameHash)
         logEntry.args.className.should.equal(service.className)
-        logEntry.args.versionMajor.should.bignumber.equal(1)
-        logEntry.args.versionMinor.should.bignumber.equal(2)
-        logEntry.args.versionPatch.should.bignumber.equal(3)
+        logEntry.args.versionMajor.should.bignumber.equal(new BN(1))
+        logEntry.args.versionMinor.should.bignumber.equal(new BN(2))
+        logEntry.args.versionPatch.should.bignumber.equal(new BN(3))
         logEntry.args.timestamp.should.bignumber.equal(timestamp)
         logEntry.args.nodeId.should.equal(nodeId)
     })
@@ -118,7 +118,7 @@ contract('ServiceRegistryContract', accounts => {
     it('announcing deployment end triggers event', async () => {
         await userRegistry.register(author.name, author.id, author.publicKey)
         await serviceRegistry.register(service.name, author.name)
-        await serviceRegistry.release(service.name, author.name, 1, 2, 3, '')
+        await serviceRegistry.release(service.name, author.name, 1, 2, 3, service.hash)
 
         let result = await serviceRegistry.announceDeploymentEnd(service.name, service.className, 1, 2, 3, nodeId)
         let logEntry = result.logs[0]
@@ -126,9 +126,9 @@ contract('ServiceRegistryContract', accounts => {
         logEntry.event.should.equal('ServiceDeploymentEnd')
         logEntry.args.nameHash.should.equal(service.nameHash)
         logEntry.args.className.should.equal(service.className)
-        logEntry.args.versionMajor.should.bignumber.equal(1)
-        logEntry.args.versionMinor.should.bignumber.equal(2)
-        logEntry.args.versionPatch.should.bignumber.equal(3)
+        logEntry.args.versionMajor.should.bignumber.equal(new BN(1))
+        logEntry.args.versionMinor.should.bignumber.equal(new BN(2))
+        logEntry.args.versionPatch.should.bignumber.equal(new BN(3))
         logEntry.args.nodeId.should.equal(nodeId)
     })
 })

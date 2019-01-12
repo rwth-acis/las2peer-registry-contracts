@@ -1,7 +1,8 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
-// This file is from https://github.com/OpenZeppelin/openzeppelin-solidity/blob/14a59b29035ab8c9fdfb969550fe35f65e88d529/contracts/cryptography/ECDSA.sol
+// This file is from https://github.com/OpenZeppelin/openzeppelin-solidity/blob/v2.1.1/contracts/cryptography/ECDSA.sol
 // LICENSE: https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/LICENSE
+
 
 /**
  * @title Elliptic curve signature operations
@@ -16,7 +17,7 @@ library ECDSA {
      * @param hash bytes32 message, the hash is the signed message. What is recovered is the signer address.
      * @param signature bytes signature, the signature is generated using web3.eth.sign()
      */
-    function recover(bytes32 hash, bytes signature) internal pure returns (address) {
+    function recover(bytes32 hash, bytes memory signature) internal pure returns (address) {
         bytes32 r;
         bytes32 s;
         uint8 v;
@@ -29,7 +30,7 @@ library ECDSA {
         // Divide the signature in r, s and v variables
         // ecrecover takes the signature parameters, and the only way to get them
         // currently is to use assembly.
-        // solium-disable-next-line security/no-inline-assembly
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             r := mload(add(signature, 0x20))
             s := mload(add(signature, 0x40))
@@ -45,7 +46,6 @@ library ECDSA {
         if (v != 27 && v != 28) {
             return (address(0));
         } else {
-            // solium-disable-next-line arg-overflow
             return ecrecover(hash, v, r, s);
         }
     }

@@ -1,8 +1,8 @@
-require('./support/setup.js')
+require('./support/setup')
 
 const CommunityTagIndexContract = artifacts.require('CommunityTagIndex')
 
-const tag = 'some-tag'
+const tag = web3.utils.utf8ToHex('some-tag')
 const text = 'lorem ipsum dolor sit amet'
 
 contract('CommunityTagIndexContract', accounts => {

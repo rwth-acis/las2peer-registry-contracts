@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import { ECDSA } from "./ECDSA.sol";
 
@@ -53,7 +53,15 @@ library Delegation {
      *
      * [1]: https://solidity.readthedocs.io/en/develop/abi-spec.html#function-selector
      */
-    function checkConsent(bytes methodId, bytes args, bytes signature) internal pure returns(address) {
+    function checkConsent(
+        bytes memory methodId,
+        bytes memory args,
+        bytes memory signature
+    )
+        internal
+        pure
+        returns(address)
+    {
         bytes32 hash = _hashCall(methodId, args);
         return _checkSignature(hash, signature);
     }
@@ -61,13 +69,13 @@ library Delegation {
     /**
      * Checks whether signature is valid for message and returns signer
      */
-    function _checkSignature(bytes32 hashOfMessage, bytes signature) internal pure returns(address) {
+    function _checkSignature(bytes32 hashOfMessage, bytes memory signature) internal pure returns(address) {
         address signer = ECDSA.recover(hashOfMessage, signature);
         require(keccak256(abi.encodePacked(signer)) != keccak256(abi.encodePacked(address(0))), "Signature not valid.");
         return signer;
     }
 
-    function _hashCall(bytes methodId, bytes args) internal pure returns(bytes32) {
+    function _hashCall(bytes memory methodId, bytes memory args) internal pure returns(bytes32) {
         return _hashForSignature(keccak256(abi.encode(methodId, args)));
     }
 

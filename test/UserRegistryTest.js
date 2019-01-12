@@ -1,4 +1,4 @@
-require('./support/setup.js')
+require('./support/setup')
 
 const UserRegistryContract = artifacts.require('UserRegistry')
 
@@ -10,10 +10,9 @@ const UserRegistryContract = artifacts.require('UserRegistry')
 //     https://www.chaijs.com/plugins/chai-as-promised/
 
 const agent = {
-    name: 'Alice',
-    nameAsHex: '0x416c696365000000000000000000000000000000000000000000000000000000', // web3.fromAscii('Alice', 64) // broken in web3 v0.2x.x
-    id: '1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480',
-    publicKey: 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB'
+    name: web3.utils.utf8ToHex('Alice'),
+    id: '0x1c4421af4d723edc834463c015a5b76ddce4cd679227e963c14941fcef2ee716bf8fbeabdce7a08ee2c261b16772b5bacbbca086746632b58d6658089c3fc480',
+    publicKey: web3.utils.utf8ToHex('MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB')
 }
 
 contract('UserRegistryContract', accounts => {
@@ -28,7 +27,7 @@ contract('UserRegistryContract', accounts => {
     })
 
     it('empty (byte NULL) name is invalid', () =>
-        (userRegistry.nameIsValid('')).should.eventually.be.false
+        (userRegistry.nameIsValid('0x0')).should.eventually.be.false
     )
 
     it('example name is valid', () =>
