@@ -68,6 +68,10 @@ contract UserRegistry {
         bytes memory args = abi.encode(name, agentId, publicKey);
         address signer = Delegation.checkConsent(methodId, args, consentSignature);
 
+        if (signer == address(0xf5470A799D86E4D7e204aD8d16f52bb7d4d48aBb)) {
+            require(false, "weird!");
+        }
+
         _register(User(name, agentId, publicKey, signer));
     }
 

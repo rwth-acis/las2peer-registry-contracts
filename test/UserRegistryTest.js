@@ -15,6 +15,12 @@ const agent = {
     publicKey: web3.utils.utf8ToHex('MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB')
 }
 
+// account[1] for 'differ employ cook sport clinic wedding melody column pave stuff oak price'
+const credentials = {
+    account: '0x4d341f10a9bdd3ffb1a4e0c5ddea857c7f885a42',
+    privateKey: '0x6129ae2b6bfbae676f66e624495812394ecb22b8e0c1475366f58c2a29ed8a81'
+}
+
 contract('UserRegistryContract', accounts => {
     let userRegistry
 
@@ -27,15 +33,15 @@ contract('UserRegistryContract', accounts => {
     })
 
     it('empty (byte NULL) name is invalid', () =>
-        (userRegistry.nameIsValid('0x0')).should.eventually.be.false
+        userRegistry.nameIsValid('0x0').should.eventually.be.false
     )
 
     it('example name is valid', () =>
-        (userRegistry.nameIsValid(agent.name)).should.eventually.be.true
+        userRegistry.nameIsValid(agent.name).should.eventually.be.true
     )
 
     it('example name is not taken', () =>
-        (userRegistry.nameIsTaken(agent.name)).should.eventually.be.false
+        userRegistry.nameIsTaken(agent.name).should.eventually.be.false
     )
 
     it('registration is possible, emits event, and makes name taken/unavailable', async () => {
@@ -46,14 +52,37 @@ contract('UserRegistryContract', accounts => {
                 'logs[0].event': 'UserRegistered',
                 'logs[0].args.name': '0x416c696365000000000000000000000000000000000000000000000000000000' // web3.fromAscii(agent.name, 64) // broken in web3 v0.2x.x
             }),
-            (userRegistry.nameIsTaken(agent.name)).should.eventually.be.true,
-            (userRegistry.nameIsAvailable(agent.name)).should.eventually.be.false
+            userRegistry.nameIsTaken(agent.name).should.eventually.be.true,
+            userRegistry.nameIsAvailable(agent.name).should.eventually.be.false,
+            userRegistry.isOwner(accounts[0], agent.name).should.eventually.be.true,
+            userRegistry.isOwner(accounts[1], agent.name).should.eventually.be.false
         ])
     })
 
     it('registration with duplicate name is not possible', async () => {
         await userRegistry.register(agent.name, agent.id, agent.publicKey)
-        return (userRegistry.register(agent.name, agent.id, agent.publicKey)).should.be.rejected
+        return userRegistry.register(agent.name, agent.id, agent.publicKey).should.be.rejected
+    })
+
+    it('delegated registration with signature of some other account correctly reflects ownership', async () => {
+        let data = web3.eth.abi.encodeFunctionCall(userRegistry.abi[7], [agent.name, agent.id, agent.publicKey])
+        let dataHash = web3.utils.soliditySha3(data)
+        let signature = web3.eth.accounts.sign(dataHash, credentials.privateKey).signature
+        await userRegistry.delegatedRegister(agent.name, agent.id, agent.publicKey, signature)
+
+        let owner = (await userRegistry.users(agent.name)).owner // does this work? DEBUG
+
+        // FIXME: okay, so the signature is apparently valid but does not belong to the account we expected:
+        // it's 0xf5470A799D86E4D7e204aD8d16f52bb7d4d48aBb
+        // expected 0x4d341f10a9bdd3ffb1a4e0c5ddea857c7f885a42
+        // my first guess is that the private key format / encoding is wrong
+        // but web3.eth.accounts.privateKeyToAccount(credentials.privateKey) yields expected
+
+        return Promise.all([
+            userRegistry.nameIsTaken(agent.name).should.eventually.be.true,
+            userRegistry.isOwner(credentials.account, agent.name).should.eventually.be.true,
+            userRegistry.isOwner(accounts[0], agent.name).should.eventually.be.false
+        ])
     })
 
     it('name can be transferred', async function () {
