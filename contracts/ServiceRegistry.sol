@@ -91,13 +91,13 @@ contract ServiceRegistry {
         _register(serviceName, authorName);
     }
 
-    function delegatedRegister(string memory serviceName, bytes32 authorName, bytes memory consentSignature) public {
+    function delegatedRegister(string memory serviceName, bytes32 authorName, address consentee, bytes memory consentSignature) public {
         // first 8 chars of keccak("register(string,bytes32)")
         bytes memory methodId = hex"656afdee";
         bytes memory args = abi.encode(serviceName, authorName);
-        address signer = Delegation.checkConsent(methodId, args, consentSignature);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
-        require(userRegistry.isOwner(signer, authorName), "Signer must own author name to register service.");
+        require(userRegistry.isOwner(consentee, authorName), "Signer must own author name to register service.");
         _register(serviceName, authorName);
     }
 
@@ -122,6 +122,7 @@ contract ServiceRegistry {
         uint versionMinor,
         uint versionPatch,
         bytes memory hash,
+        address consentee,
         bytes memory consentSignature
     )
         public
@@ -129,9 +130,9 @@ contract ServiceRegistry {
         // first 8 chars of keccak("release(string,bytes32,uint,uint,uint,bytes)")
         bytes memory methodId = hex"626efb2d";
         bytes memory args = abi.encode(serviceName, authorName, versionMajor, versionMinor, versionPatch);
-        address signer = Delegation.checkConsent(methodId, args, consentSignature);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
-        require(userRegistry.isOwner(signer, authorName), "Signer must own author name to release.");
+        require(userRegistry.isOwner(consentee, authorName), "Signer must own author name to release.");
         _release(serviceName, authorName, versionMajor, versionMinor, versionPatch, hash);
     }
 

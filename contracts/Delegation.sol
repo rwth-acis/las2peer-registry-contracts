@@ -56,23 +56,30 @@ library Delegation {
     function checkConsent(
         bytes memory methodId,
         bytes memory args,
+        address signer,
         bytes memory signature
     )
-        internal
+        public
         pure
-        returns(address)
     {
         bytes32 hash = _hashCall(methodId, args);
-        return _checkSignature(hash, signature);
+        _checkSignature(hash, signer, signature);
     }
 
     /**
      * Checks whether signature is valid for message and returns signer
      */
-    function _checkSignature(bytes32 hashOfMessage, bytes memory signature) internal pure returns(address) {
-        address signer = ECDSA.recover(hashOfMessage, signature);
-        require(keccak256(abi.encodePacked(signer)) != keccak256(abi.encodePacked(address(0))), "Signature not valid.");
-        return signer;
+    function _checkSignature(
+        bytes32 hashOfMessage,
+        address signer,
+        bytes memory signature
+    )
+        internal
+        pure
+    {
+        address actualSigner = ECDSA.recover(hashOfMessage, signature);
+        require(keccak256(abi.encodePacked(actualSigner)) != keccak256(abi.encodePacked(address(0))), "Signature not valid.");
+        require(keccak256(abi.encodePacked(actualSigner)) == keccak256(abi.encodePacked(signer)), "Signature does not match claimed signer.");
     }
 
     function _hashCall(bytes memory methodId, bytes memory args) internal pure returns(bytes32) {
