@@ -108,16 +108,4 @@ contract UserRegistry {
         users[name].owner = newOwner;
         emit UserTransferred(name);
     }
-
-    function debug(uint256 a) public pure returns(uint256) {
-        return a + 3;
-    }
-
-    function delegatedDebug(uint256 a, address consentee, bytes memory consentSignature) public pure returns(uint256) {
-        bytes memory methodId = hex"815dd951";
-        bytes memory args = abi.encode(a); // direct encode for fixed-length type, packed encode for dynamic length types
-        Delegation.checkConsent(methodId, args, consentee, consentSignature);
-
-        return a + 3;
-    }
 }
