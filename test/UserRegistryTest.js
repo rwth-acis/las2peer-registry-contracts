@@ -52,6 +52,13 @@ contract('UserRegistryContract', accounts => {
         userRegistry.delegatedDebug(new BN(5), credentials[2].account, sigData.signature).should.eventually.bignumber.equal(new BN(8))
     })
 
+    it('DEBUG signed with encodeFunctionCall and generated ABI', () => {
+        let abi = userRegistry.abi.filter((o) => o.name === 'debug')[0]
+        let data = web3.eth.abi.encodeFunctionCall(abi, [5])
+        let sigData = web3.eth.accounts.sign(data, credentials[1].privateKey)
+        userRegistry.delegatedDebug(new BN(5), credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(8))
+    })
+
 //  it('DEBUG', () => {
 //      userRegistry.debug(new BN(5)).should.eventually.bignumber.equal(new BN(8))
 //  })
