@@ -127,9 +127,9 @@ contract ServiceRegistry {
     )
         public
     {
-        // first 8 chars of keccak("release(string,bytes32,uint,uint,uint,bytes)")
-        bytes memory methodId = hex"626efb2d";
-        bytes memory args = abi.encode(serviceName, authorName, versionMajor, versionMinor, versionPatch);
+        // first 8 chars of keccak("release(string,bytes32,uint256,uint256,uint256,bytes)")
+        bytes memory methodId = hex"e1930700";
+        bytes memory args = abi.encode(serviceName, authorName, versionMajor, versionMinor, versionPatch, hash);
         Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
         require(userRegistry.isOwner(consentee, authorName), "Signer must own author name to release.");
