@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
-
 import { Delegation } from "./Delegation.sol";
+
 
 /**
  * User name registry
@@ -59,6 +59,7 @@ contract UserRegistry {
         bytes32 name,
         bytes memory agentId,
         bytes memory publicKey,
+        address consentee,
         bytes memory consentSignature
     )
         public
@@ -66,9 +67,9 @@ contract UserRegistry {
         // first 8 chars of keccak("register(bytes32,bytes,bytes)")
         bytes memory methodId = hex"ebc1b8ff";
         bytes memory args = abi.encode(name, agentId, publicKey);
-        address signer = Delegation.checkConsent(methodId, args, consentSignature);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
-        _register(User(name, agentId, publicKey, signer));
+        _register(User(name, agentId, publicKey, consentee));
     }
 
     function transfer(bytes32 name, address newOwner) public onlyOwnName(name) {
@@ -82,11 +83,11 @@ contract UserRegistry {
     // then: the signature can be used to once again transfer to B
     // the premise is unusual, but still it shouldn't be allowed
     /*
-    function delegatedTransfer(bytes32 name, address newOwner, bytes memory consentSignature) public {
+    function delegatedTransfer(bytes32 name, address newOwner, address consentee, bytes memory consentSignature) public {
         // first 8 chars of keccak("transfer(bytes32,address)")
         bytes memory methodId = hex"79ce9fac";
         bytes memory args = abi.encode(name, newOwner);
-        address signer = Delegation.checkConsent(methodId, args, consentSignature);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
         require(users[name].owner == signer);
         _transfer(name, newOwner, signer);

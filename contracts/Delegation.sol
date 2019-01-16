@@ -56,35 +56,77 @@ library Delegation {
     function checkConsent(
         bytes memory methodId,
         bytes memory args,
+        address signer,
         bytes memory signature
     )
-        internal
+        public
         pure
-        returns(address)
     {
-        bytes32 hash = _hashCall(methodId, args);
-        return _checkSignature(hash, signature);
+        // let's be very explicit here. this may seem over-elaborate, but since I've messed this up repeatedly,
+        // let's take things slow
+
+        // the actual content of our message is the encoded call
+        bytes memory data = _encodeCall(methodId, args);
+        // but to make things easier, we just use the hash
+        bytes32 dataHash = keccak256(data);
+
+        // now we do what eth_sign does:
+        // put that in an Ethereum-specific envelope
+        bytes memory envelope = _putDataInEnvelope(dataHash);
+        // and hash it
+        bytes32 envelopeHash = keccak256(envelope);
+        // this hash is the actual thing that's cryptographically signed
+        // (on a low level; this is not exposed in the API)
+
+        // so this is what we check: does the signature match the encoded call data,
+        // and was it signed by the claimed signer?
+        _checkSignature(envelopeHash, signer, signature);
     }
 
     /**
      * Checks whether signature is valid for message and returns signer
      */
-    function _checkSignature(bytes32 hashOfMessage, bytes memory signature) internal pure returns(address) {
-        address signer = ECDSA.recover(hashOfMessage, signature);
-        require(keccak256(abi.encodePacked(signer)) != keccak256(abi.encodePacked(address(0))), "Signature not valid.");
-        return signer;
-    }
-
-    function _hashCall(bytes memory methodId, bytes memory args) internal pure returns(bytes32) {
-        return _hashForSignature(keccak256(abi.encode(methodId, args)));
+    function _checkSignature(
+        bytes32 hashOfMessage,
+        address signer,
+        bytes memory signature
+    )
+        internal
+        pure
+    {
+        address actualSigner = ECDSA.recover(hashOfMessage, signature);
+        require(keccak256(abi.encodePacked(actualSigner)) != keccak256(abi.encodePacked(address(0))), "Signature not valid.");
+        require(keccak256(abi.encodePacked(actualSigner)) == keccak256(abi.encodePacked(signer)), "Signature does not match claimed signer.");
     }
 
     /**
-     * Compute hash with Ethereum-specific prefix, compatible with eth_sign
-     * https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
+     * Compute encoded function call as bytes, compatible with
+     * https://web3js.readthedocs.io/en/1.0/web3-eth-abi.html#encodefunctioncall
      */
-    function _hashForSignature(bytes32 contentHash) internal pure returns(bytes32) {
+    function _encodeCall(bytes memory methodId, bytes memory args) internal pure returns(bytes memory) {
+        return abi.encodePacked(methodId, args);
+    }
+
+    /**
+     * Envelope data as Ethereum signed message, as used in
+     * https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign
+     *
+     * Careful: Some implementations of `sign` automatically hash the data before putting it in the envelope,
+     * others do not. Check what is happening in whatever library you use.
+     * In our signed consent messages, the data is hashed.
+     * In order to be unambiguous, we take the hash as argument here.
+     *
+     * web3.js does not automatically hash the message data, so be sure to use something like:
+     *     web3.eth.accounts.sign(web3.utils.sha3(data), privateKey).signature
+     * https://web3js.readthedocs.io/en/1.0/web3-eth-accounts.html#sign
+     */
+    function _putDataInEnvelope(bytes32 hashOfData) internal pure returns(bytes memory) {
+        // the 32 indicates the length (always 32 because we use the hash)
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        return keccak256(abi.encode(prefix, contentHash));
+
+        // yes, encodePacked not encode
+        bytes memory envelope = abi.encodePacked(prefix, hashOfData);
+
+        return envelope;
     }
 }
