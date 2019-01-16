@@ -25,7 +25,7 @@ contract('DelegationTest', accounts => {
         delegationExample = await DelegationExample.new()
     })
 
-    it('direct call works', () => delegationExample.testFunction(new BN(5), "foo").should.eventually.bignumber.equal(new BN(42)))
+    it('direct call works', () => delegationExample.testFunction(new BN(5), 'foo').should.eventually.bignumber.equal(new BN(42)))
 
     it('delegated call signed with encodeFunctionCall and manual ABI works', () => {
         let data = web3.eth.abi.encodeFunctionCall({
@@ -35,19 +35,19 @@ contract('DelegationTest', accounts => {
                 { type: 'uint256', name: 'a' },
                 { type: 'string', name: 'b' }
             ]
-        }, [5, "foo"])
+        }, [5, 'foo'])
 
         let dataHash = web3.utils.sha3(data)
         let sigData = web3.eth.accounts.sign(dataHash, credentials[1].privateKey)
-        return delegationExample.delegatedTestFunction(new BN(5), "foo", credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
+        return delegationExample.methods['testFunction(uint256,string,address,bytes)'](new BN(5), 'foo', credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
     })
 
     it('delegated call signed with encodeFunctionCall and generated ABI works', () => {
-        let abi = DelegationExample.abi.filter((o) => o.name === 'testFunction')[0]
-        let data = web3.eth.abi.encodeFunctionCall(abi, [5, "foo"])
+        let abi = DelegationExample.abi.filter((o) => o.name === 'testFunction' && o.inputs.length === 2)[0]
+        let data = web3.eth.abi.encodeFunctionCall(abi, [5, 'foo'])
 
         let dataHash = web3.utils.sha3(data)
         let sigData = web3.eth.accounts.sign(dataHash, credentials[1].privateKey)
-        return delegationExample.delegatedTestFunction(new BN(5), "foo", credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
+        return delegationExample.methods['testFunction(uint256,string,address,bytes)'](new BN(5), 'foo', credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
     })
 })

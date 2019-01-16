@@ -11,14 +11,10 @@ import { Delegation } from "./Delegation.sol";
  */
 contract DelegationExample {
     /**
-     * Some function, to be invoked directly
+     * Some function to be invoked directly, merely calls the private implementation
      */
-    function testFunction(uint256 a, string memory b) public pure returns(uint256) {
-        // at this point, permissions would usually be checked, e.g.,
-        // some check with msg.sender
-
-        // then the actual state change is performed as a separate private function
-        return _testFunction(a, b);
+    function testFunction(uint256 a, string memory b) public view returns(uint256) {
+        return _testFunction(a, b, msg.sender);
     }
 
     /**
@@ -27,7 +23,7 @@ contract DelegationExample {
      * testFunction(a, b) directly.
      * But rather than the permission check there, we perform the equivalent here.
      */
-    function delegatedTestFunction(
+    function testFunction(
         uint256 a,
         string memory b,
         address consentee,
@@ -51,15 +47,11 @@ contract DelegationExample {
         // * signature was not created by consentee
         Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
-        // at this point, perform the same permission check as testFunction does, but with consentee in place of msg.sender
-        // (or whatever other permission logic there is)
-
-        // in this example, we don't actually use the consentee in any way, so this doesn't make sense
-        // usually, this would do something that only the consentee is allowed to do
-        return _testFunction(a, b);
+        return _testFunction(a, b, consentee);
     }
 
-    function _testFunction(uint a, string memory b) private pure returns(uint256) {
+    function _testFunction(uint a, string memory b, address subject) private pure returns(uint256) {
+        require(subject != address(0), "[This is an example check]"); // do actual permissions check here
         return 42;
     }
 }
