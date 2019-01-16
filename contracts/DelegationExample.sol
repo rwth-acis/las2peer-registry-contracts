@@ -23,7 +23,7 @@ contract DelegationExample {
      * testFunction(a, b) directly.
      * But rather than the permission check there, we perform the equivalent here.
      */
-    function testFunction(
+    function delegatedTestFunction(
         uint256 a,
         string memory b,
         address consentee,

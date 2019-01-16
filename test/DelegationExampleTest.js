@@ -38,8 +38,8 @@ contract('DelegationTest', accounts => {
         }, [5, 'foo'])
 
         let dataHash = web3.utils.sha3(data)
-        let sigData = web3.eth.accounts.sign(dataHash, credentials[1].privateKey)
-        return delegationExample.methods['testFunction(uint256,string,address,bytes)'](new BN(5), 'foo', credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
+        let sigData = web3.eth.accounts.sign(dataHash, credentials[0].privateKey)
+        return delegationExample.delegatedTestFunction(new BN(5), 'foo', credentials[0].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
     })
 
     it('delegated call signed with encodeFunctionCall and generated ABI works', () => {
@@ -48,6 +48,6 @@ contract('DelegationTest', accounts => {
 
         let dataHash = web3.utils.sha3(data)
         let sigData = web3.eth.accounts.sign(dataHash, credentials[1].privateKey)
-        return delegationExample.methods['testFunction(uint256,string,address,bytes)'](new BN(5), 'foo', credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
+        return delegationExample.delegatedTestFunction(new BN(5), 'foo', credentials[1].account, sigData.signature).should.eventually.bignumber.equal(new BN(42))
     })
 })
