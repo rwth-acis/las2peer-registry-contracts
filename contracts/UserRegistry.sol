@@ -11,7 +11,7 @@ import { Delegation } from "./Delegation.sol";
  * mappings aren't supported.
  */
 contract UserRegistry {
-    event UserRegistered(bytes32 name);
+    event UserRegistered(bytes32 name, uint256 timestamp);
     event UserTransferred(bytes32 name);
     //event UserDeleted(bytes32);
 
@@ -101,7 +101,7 @@ contract UserRegistry {
         require(nameIsAvailable(user.name), "Name already taken or invalid.");
 
         users[user.name] = user;
-        emit UserRegistered(user.name);
+        emit UserRegistered(user.name, now);
     }
 
     function _transfer(bytes32 name, address newOwner) private {

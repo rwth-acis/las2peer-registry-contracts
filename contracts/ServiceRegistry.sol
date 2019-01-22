@@ -11,7 +11,8 @@ contract ServiceRegistry {
 
     event ServiceCreated(
         bytes32 indexed nameHash,
-        bytes32 indexed author
+        bytes32 indexed author,
+        uint256 timestamp
     );
 
     event ServiceReleased(
@@ -19,7 +20,8 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        bytes hash
+        bytes hash,
+        uint256 timestamp
     );
 
     event ServiceDeployment(
@@ -28,8 +30,8 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        uint timestamp,
-        string nodeId
+        string nodeId,
+        uint timestamp
     );
 
     event ServiceDeploymentEnd(
@@ -38,7 +40,8 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        string nodeId
+        string nodeId,
+        uint256 timestamp
     );
 
     struct Version {
@@ -142,14 +145,13 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        uint timestamp,
         string memory nodeId
     )
         public
         onlyRegisteredService(serviceName)
     {
         bytes32 nameHash = stringHash(serviceName);
-        emit ServiceDeployment(nameHash, className, versionMajor, versionMinor, versionPatch, timestamp, nodeId);
+        emit ServiceDeployment(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, now);
     }
 
     function announceDeploymentEnd(
@@ -164,7 +166,7 @@ contract ServiceRegistry {
         onlyRegisteredService(serviceName)
     {
         bytes32 nameHash = stringHash(serviceName);
-        emit ServiceDeploymentEnd(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId);
+        emit ServiceDeploymentEnd(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, now);
     }
 
     function _register(
@@ -178,7 +180,7 @@ contract ServiceRegistry {
         require(nameIsAvailable(serviceName), "Service name already taken.");
         bytes32 hash = stringHash(serviceName);
         services[hash] = Service(serviceName, authorName);
-        emit ServiceCreated(hash, authorName);
+        emit ServiceCreated(hash, authorName, now);
     }
 
     function _release(
@@ -197,6 +199,6 @@ contract ServiceRegistry {
         require(services[nameHash].author == authorName, "Passed author does not own service.");
 
         serviceVersions[nameHash].push(Version(versionMajor, versionMinor, versionPatch));
-        emit ServiceReleased(nameHash, versionMajor, versionMinor, versionPatch, hash);
+        emit ServiceReleased(nameHash, versionMajor, versionMinor, versionPatch, hash, now);
     }
 }
