@@ -6,13 +6,13 @@ contract ReputationRegistry {
     UserRegistry public userRegistry;
 
     int __amountMax = 5;
-    int __amountMin = __amountMax * -1;
+    int __amountMin = 0;//__amountMax * -1;
     int __maxReputationGiven = __amountMax * 2;
     int __minReputationGiven = __amountMin * 2;
 
     struct UserProfile {
         address owner;
-        bytes ownerId;
+        bytes32 userName;
 
         int cumulativeScore;
         uint noTransactions;
@@ -100,13 +100,16 @@ contract ReputationRegistry {
     function createProfile( bytes32 username ) public
         userIsOwner( msg.sender, username )
         onlyUnknownProfile(msg.sender)
+        returns (int)
     {
         profiles[msg.sender].cumulativeScore = 0;
         profiles[msg.sender].noTransactions = 0;
         profiles[msg.sender].owner = msg.sender;
+        profiles[msg.sender].userName = username;
         //profiles[msg.sender].ownerAgentID = userRegistry.users[username].agentId;
         _createProfile(username, msg.sender);
         //return username;
+        return 1;
     }
 
     function abs(int x) private pure returns(int)
