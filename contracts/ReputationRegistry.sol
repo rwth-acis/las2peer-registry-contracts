@@ -98,18 +98,20 @@ contract ReputationRegistry {
      */
 
     function createProfile( bytes32 username ) public
-        userIsOwner( msg.sender, username )
+        //userIsOwner( msg.sender, username )
         onlyUnknownProfile(msg.sender)
-        returns (int)
+        //returns (int)
     {
-        profiles[msg.sender].cumulativeScore = 0;
-        profiles[msg.sender].noTransactions = 0;
-        profiles[msg.sender].owner = msg.sender;
-        profiles[msg.sender].userName = username;
+        profiles[msg.sender] = UserProfile(
+            msg.sender,
+            username,
+            0,
+            0
+        );
         //profiles[msg.sender].ownerAgentID = userRegistry.users[username].agentId;
         _createProfile(username, msg.sender);
         //return username;
-        return 1;
+        //return 1;
     }
 
     function abs(int x) private pure returns(int)
