@@ -1,9 +1,9 @@
 pragma solidity ^0.5.0;
 
-import "./UserRegistry.sol";
+// import "./UserRegistry.sol";
 
 contract ReputationRegistry {
-    UserRegistry public userRegistry;
+    //UserRegistry public userRegistry;
 
     int __amountMax = 5;
     int __amountMin = 0;//__amountMax * -1;
@@ -26,7 +26,7 @@ contract ReputationRegistry {
     event TransactionAdded( address sender, address subject, int grade, int subjectNewScore );
 
     constructor(address userRegistryAddress) public {
-        userRegistry = UserRegistry(userRegistryAddress);
+        //userRegistry = UserRegistry(userRegistryAddress);
     }
 
     /**
@@ -38,7 +38,7 @@ contract ReputationRegistry {
      */
 
     modifier userIsOwner(address claimedOwner, bytes32 username) {
-        require(userRegistry.isOwner(claimedOwner, username), "Sender does not own user account" );
+       // require(userRegistry.isOwner(claimedOwner, username), "Sender does not own user account" );
         _;
     }
     modifier onlyOwnProfile() {
