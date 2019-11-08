@@ -102,12 +102,12 @@ contract ReputationRegistry {
         onlyUnknownProfile(msg.sender)
         //returns (int)
     {
-        profiles[msg.sender] = UserProfile(
-            msg.sender,
-            username,
-            0,
-            0
-        );
+        profiles[msg.sender] = UserProfile({
+            owner: msg.sender,
+            userName: username,
+            cumulativeScore: 0,
+            noTransactions: 0
+        });
         //profiles[msg.sender].ownerAgentID = userRegistry.users[username].agentId;
         _createProfile(username, msg.sender);
         //return username;
