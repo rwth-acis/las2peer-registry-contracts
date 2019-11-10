@@ -17,13 +17,19 @@ contract ReputationRegistry {
         int cumulativeScore;
         uint noTransactions;
 
+        uint index;
+
         mapping(address => int) givenReputation;
     }
 
+    address[] private profileIndex;
     mapping (address => UserProfile) public profiles;
 
-    event UserProfileCreated( bytes32 name, address owner);
-    event TransactionAdded( address sender, address subject, int grade, int subjectNewScore );
+    event ErrorEvent( string message );
+    event UserProfileCreated( bytes32 name, address indexed owner);
+    event TransactionScoreChanged(address indexed sender, address indexed recipient, int newScore);
+    event TransactionCountChanged(address indexed recipient, uint newScore);
+    event TransactionAdded( address indexed sender, address indexed recipient, int grade, int recipientNewScore );
 
     constructor(address userRegistryAddress) public {
         //userRegistry = UserRegistry(userRegistryAddress);
@@ -37,31 +43,56 @@ contract ReputationRegistry {
      * =================================
      */
 
-    modifier userIsOwner(address claimedOwner, bytes32 username) {
-       // require(userRegistry.isOwner(claimedOwner, username), "Sender does not own user account" );
+    modifier userIsOwner(address claimedOwner, bytes32 userName) {
+       // require(userRegistry.isOwner(claimedOwner, userName), "Sender does not own user account" );
         _;
     }
     modifier onlyOwnProfile() {
-        require(profiles[msg.sender].owner == msg.sender, "Sender does not own profile.");
+        //require(profiles[msg.sender].owner == msg.sender, "Sender does not own profile.");
+        if(profiles[msg.sender].owner != msg.sender)
+        {
+            emit ErrorEvent("Sender does not own profile.");
+            require(profiles[msg.sender].owner == msg.sender, "Sender does not own profile.");
+        }
         _;
     }
     modifier onlyUnknownProfile(address profileID) {
         UserProfile storage maybeEmpty = profiles[profileID];
-        require(maybeEmpty.owner == address(0), "Profile cannot exist.");
+        //require(maybeEmpty.owner == address(0), "Profile cannot exist.");
+        if(maybeEmpty.owner != address(0))
+        {
+            emit ErrorEvent("Profile cannot exist.");
+            require(maybeEmpty.owner == address(0), "Profile cannot exist.");
+        }
         _;
     }
     modifier onlyKnownProfile(address profileID) {
         UserProfile storage maybeEmpty = profiles[profileID];
-        require(maybeEmpty.owner != address(0), "Profile not found.");
+        //require(maybeEmpty.owner != address(0), "Profile not found.");
+        if(maybeEmpty.owner == address(0))
+        {
+            emit ErrorEvent("Profile not found.");
+            require(maybeEmpty.owner != address(0), "Profile not found.");
+        }
         _;
     }
     modifier onlyKnownSender() {
         UserProfile storage maybeEmpty = profiles[msg.sender];
-        require(maybeEmpty.owner != address(0), "Sender profile not found.");
+        //require(maybeEmpty.owner != address(0), "Sender profile not found.");
+        if(maybeEmpty.owner == address(0))
+        {
+            emit ErrorEvent("Sender profile not found.");
+            require(maybeEmpty.owner != address(0), "Sender profile not found.");
+        }
         _;
     }
     modifier onlyBy(address profileID) {
-        require(msg.sender == profileID, "Restricted access: only owner is allowed");
+        //require(msg.sender == profileID, "Restricted access: only owner is allowed");
+        if(msg.sender != profileID)
+        {
+            emit ErrorEvent("Restricted access: only owner is allowed");
+            require(msg.sender == profileID, "Restricted access: only owner is allowed");
+        }
         _;
     }
 
@@ -74,19 +105,83 @@ contract ReputationRegistry {
      */
 
     function getNoTransactions( address profileID ) public view
-        onlyKnownProfile(profileID)
         returns(uint)
     {
+        if (!hasProfile(profileID)) revert("profile not found");
         UserProfile storage userProfile = profiles[profileID];
         return userProfile.noTransactions;
     }
 
     function getCumulativeScore( address profileID ) public view
-        onlyKnownProfile(profileID)
         returns(int)
     {
+        if (!hasProfile(profileID)) revert("profile not found");
         UserProfile storage userProfile = profiles[profileID];
         return userProfile.cumulativeScore;
+    }
+
+    // https://bitbucket.org/rhitchens2/soliditycrud
+    function hasProfile(address userAddress) public view returns(bool)
+    {
+        if(profileIndex.length == 0) return false;
+        return (profileIndex[profiles[userAddress].index] == userAddress);
+    }
+
+    // https://bitbucket.org/rhitchens2/soliditycrud
+    function _getProfile(address userAddress)
+        public
+        view
+        returns(bytes32 userName, int cumulativeScore, uint noTransactions, uint index)
+    {
+        if (!hasProfile(userAddress)) revert("profile not found");
+        return(
+            profiles[userAddress].userName,
+            profiles[userAddress].cumulativeScore,
+            profiles[userAddress].noTransactions,
+            profiles[userAddress].index
+        );
+    }
+
+    // https://bitbucket.org/rhitchens2/soliditycrud
+    function _getUserAtIndex(uint index)
+        public
+        view
+        returns (address)
+    {
+        return profileIndex[index];
+    }
+
+    // https://bitbucket.org/rhitchens2/soliditycrud
+    function _getUserCount()
+        public
+        view
+        returns (uint)
+    {
+        return profileIndex.length;
+    }
+
+    function _updateUserCumulativeScore(address senderAddress, address recipientAddress, int newScore)
+        public
+        returns (bool)
+    {
+        if ( !hasProfile(recipientAddress) ) _revert("recipient not found");
+        if ( !hasProfile(senderAddress) ) _revert("sender not found");
+        profiles[recipientAddress].cumulativeScore = newScore;
+        profiles[senderAddress].givenReputation[recipientAddress] = newScore;
+        emit TransactionScoreChanged(senderAddress, recipientAddress, newScore);
+        return true;
+    }
+
+    function _updateUserNoTransactions(address userAddress)
+        public
+        returns (bool)
+    {
+        if ( !hasProfile(userAddress) ) _revert("profile not found");
+        //profiles[userAddress].noTransactions += 1;
+        uint noT = profiles[userAddress].noTransactions + 1;
+        profiles[userAddress].noTransactions = noT;
+        emit TransactionCountChanged(userAddress, noT);
+        return true;
     }
 
     /**
@@ -97,20 +192,37 @@ contract ReputationRegistry {
      * =================================
      */
 
-    function createProfile( bytes32 username ) public
-        //userIsOwner( msg.sender, username )
-        onlyUnknownProfile(msg.sender)
+    // https://bitbucket.org/rhitchens2/soliditycrud
+    function _insertProfile(
+        address _userAddress,
+        bytes32 _userName,
+        int _cumulativeScore,
+        uint _noTransactions
+    ) public returns(uint index)
+    {
+        if ( hasProfile(_userAddress) ) _revert("profile already exists");
+
+        profiles[_userAddress] = UserProfile({
+            owner: _userAddress,
+            userName: _userName,
+            cumulativeScore: _cumulativeScore,
+            noTransactions: _noTransactions,
+            index: profileIndex.push(_userAddress)-1
+        });
+
+        _createProfile(_userName, _userAddress);
+        return profileIndex.length-1;
+    }
+
+    function createProfile( bytes32 userName ) public
+        //userIsOwner( msg.sender, userName )
+        //onlyUnknownProfile(msg.sender)
         //returns (int)
     {
-        profiles[msg.sender] = UserProfile({
-            owner: msg.sender,
-            userName: username,
-            cumulativeScore: 0,
-            noTransactions: 0
-        });
-        //profiles[msg.sender].ownerAgentID = userRegistry.users[username].agentId;
-        _createProfile(username, msg.sender);
-        //return username;
+        _insertProfile(msg.sender, userName, 0, 0);
+        _createProfile(userName, msg.sender);
+        //profiles[msg.sender].ownerAgentID = userRegistry.users[userName].agentId;
+        //return userName;
         //return 1;
     }
 
@@ -123,17 +235,30 @@ contract ReputationRegistry {
 
 
     function addTransaction(address contrahent, int amount) public
-        onlyKnownProfile(msg.sender)
-        onlyKnownProfile(contrahent)
+        //onlyKnownProfile(msg.sender)
+        //onlyKnownProfile(contrahent)
     {
-        // sanity check
-        require(amount <= __amountMax && amount >= __amountMin, "Rating must be an int between __amountMin and __amountMax");
+        if ( !hasProfile(msg.sender)) {
+            _revert("sender profile unknown");
+        }
+        if ( !hasProfile(contrahent)) {
+            _revert("contrahent profile unknown");
+        }
 
-        // cannot rate self
-        require(msg.sender != contrahent, "Cannot rate yourself");
+        if ( amount > __amountMax && amount < __amountMin ) {
+            _revert("Rating must be an int between __amountMin and __amountMax");
+        }
+
+        if ( msg.sender == contrahent ) {
+            _revert("Cannot rate yourself");
+        }
+
+        // sanity check
+        //require(amount <= __amountMax && amount >= __amountMin, "Rating must be an int between __amountMin and __amountMax");
+        //require(msg.sender != contrahent, "Cannot rate yourself");
 
         // TODO: apply rating formula magic
-        int subjectNewScore = profiles[contrahent].cumulativeScore + amount;
+        int recipientNewScore = profiles[contrahent].cumulativeScore + amount;
         int givenReputation = profiles[msg.sender].givenReputation[contrahent] + amount;
         if ( givenReputation > ( __maxReputationGiven ) )
         {
@@ -143,14 +268,18 @@ contract ReputationRegistry {
         {
             givenReputation = __minReputationGiven;
         }
-        uint newNoTransactions = profiles[msg.sender].noTransactions + 1;
-        uint subjectNewNoTransactions = profiles[contrahent].noTransactions + 1;
+        _updateUserNoTransactions(msg.sender);
+        _updateUserNoTransactions(contrahent);
 
-        profiles[contrahent].cumulativeScore = subjectNewScore;
-        profiles[contrahent].noTransactions = subjectNewNoTransactions;
-        profiles[msg.sender].noTransactions = newNoTransactions;
+        _updateUserCumulativeScore(msg.sender, contrahent, recipientNewScore);
+        //uint newNoTransactions = profiles[msg.sender].noTransactions + 1;
+        //uint recipientNewNoTransactions = profiles[contrahent].noTransactions + 1;
+
+        profiles[contrahent].cumulativeScore = recipientNewScore;
+        //profiles[contrahent].noTransactions = recipientNewNoTransactions;
+        //profiles[msg.sender].noTransactions = newNoTransactions;
         profiles[msg.sender].givenReputation[contrahent] = givenReputation;
-        _sendTransaction(msg.sender, contrahent, amount, subjectNewScore);
+        _sendTransaction(msg.sender, contrahent, amount, recipientNewScore);
     }
 
     /**
@@ -161,13 +290,19 @@ contract ReputationRegistry {
      * =================================
      */
 
-    function _createProfile (bytes32 username, address owner) private
+    function _createProfile (bytes32 userName, address owner) private
     {
-        emit UserProfileCreated(username, owner);
+        emit UserProfileCreated(userName, owner);
     }
 
-    function _sendTransaction (address sender, address subject, int grading, int subjectNewScore) private
+    function _sendTransaction (address sender, address recipient, int grading, int recipientNewScore) private
     {
-        emit TransactionAdded(sender, subject, grading, subjectNewScore);
+        emit TransactionAdded(sender, recipient, grading, recipientNewScore);
+    }
+
+    function _revert(string memory message) public
+    {
+        emit ErrorEvent(message);
+        revert(message);
     }
 }
