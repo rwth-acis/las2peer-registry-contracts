@@ -15,7 +15,8 @@ contract ReputationRegistry {
         bytes32 userName;
 
         int cumulativeScore;
-        uint noTransactions;
+        uint noTxSent;
+        uint noTxRcvd;
 
         uint index;
 
@@ -104,12 +105,20 @@ contract ReputationRegistry {
      * =================================
      */
 
-    function getNoTransactions( address profileID ) public view
+    function getNoTransactionsSent( address profileID ) public view
         returns(uint)
     {
         if (!hasProfile(profileID)) revert("profile not found");
         UserProfile storage userProfile = profiles[profileID];
-        return userProfile.noTransactions;
+        return userProfile.noTxSent;
+    }
+
+    function getNoTransactionsReceived( address profileID ) public view
+        returns(uint)
+    {
+        if (!hasProfile(profileID)) revert("profile not found");
+        UserProfile storage userProfile = profiles[profileID];
+        return userProfile.noTxRcvd;
     }
 
     function getCumulativeScore( address profileID ) public view
@@ -131,13 +140,19 @@ contract ReputationRegistry {
     function _getProfile(address userAddress)
         public
         view
-        returns(bytes32 userName, int cumulativeScore, uint noTransactions, uint index)
+        returns(
+            bytes32 userName,
+            int cumulativeScore,
+            uint noTransactionsSent,
+            uint noTransactionsReceived,
+            uint index)
     {
         if (!hasProfile(userAddress)) revert("profile not found");
         return(
             profiles[userAddress].userName,
             profiles[userAddress].cumulativeScore,
-            profiles[userAddress].noTransactions,
+            profiles[userAddress].noTxSent,
+            profiles[userAddress].noTxRcvd,
             profiles[userAddress].index
         );
     }
@@ -161,7 +176,7 @@ contract ReputationRegistry {
     }
 
     function _updateUserCumulativeScore(address senderAddress, address recipientAddress, int newScore)
-        public
+        private
         returns (bool)
     {
         if ( !hasProfile(recipientAddress) ) _revert("recipient not found");
@@ -172,14 +187,26 @@ contract ReputationRegistry {
         return true;
     }
 
-    function _updateUserNoTransactions(address userAddress)
-        public
+    function _updateUserNoTransactionsSent(address userAddress)
+        private
         returns (bool)
     {
         if ( !hasProfile(userAddress) ) _revert("profile not found");
         //profiles[userAddress].noTransactions += 1;
-        uint noT = profiles[userAddress].noTransactions + 1;
-        profiles[userAddress].noTransactions = noT;
+        uint noT = profiles[userAddress].noTxSent + 1;
+        profiles[userAddress].noTxSent = noT;
+        emit TransactionCountChanged(userAddress, noT);
+        return true;
+    }
+
+    function _updateUserNoTransactionsReceived(address userAddress)
+        private
+        returns (bool)
+    {
+        if ( !hasProfile(userAddress) ) _revert("profile not found");
+        //profiles[userAddress].noTransactions += 1;
+        uint noT = profiles[userAddress].noTxRcvd + 1;
+        profiles[userAddress].noTxRcvd = noT;
         emit TransactionCountChanged(userAddress, noT);
         return true;
     }
@@ -197,8 +224,9 @@ contract ReputationRegistry {
         address _userAddress,
         bytes32 _userName,
         int _cumulativeScore,
-        uint _noTransactions
-    ) public returns(uint index)
+        uint _noTransactionsSent,
+        uint _noTransactionsRcvd
+    ) private returns(uint index)
     {
         if ( hasProfile(_userAddress) ) _revert("profile already exists");
 
@@ -206,7 +234,8 @@ contract ReputationRegistry {
             owner: _userAddress,
             userName: _userName,
             cumulativeScore: _cumulativeScore,
-            noTransactions: _noTransactions,
+            noTxSent: _noTransactionsSent,
+            noTxRcvd: _noTransactionsRcvd,
             index: profileIndex.push(_userAddress)-1
         });
 
@@ -215,15 +244,8 @@ contract ReputationRegistry {
     }
 
     function createProfile( bytes32 userName ) public
-        //userIsOwner( msg.sender, userName )
-        //onlyUnknownProfile(msg.sender)
-        //returns (int)
     {
-        _insertProfile(msg.sender, userName, 0, 0);
-        _createProfile(userName, msg.sender);
-        //profiles[msg.sender].ownerAgentID = userRegistry.users[userName].agentId;
-        //return userName;
-        //return 1;
+        _insertProfile(msg.sender, userName, 0, 0, 0);
     }
 
     function abs(int x) private pure returns(int)
@@ -268,8 +290,8 @@ contract ReputationRegistry {
         {
             givenReputation = __minReputationGiven;
         }
-        _updateUserNoTransactions(msg.sender);
-        _updateUserNoTransactions(contrahent);
+        _updateUserNoTransactionsSent(msg.sender);
+        _updateUserNoTransactionsReceived(contrahent);
 
         _updateUserCumulativeScore(msg.sender, contrahent, recipientNewScore);
         //uint newNoTransactions = profiles[msg.sender].noTransactions + 1;
