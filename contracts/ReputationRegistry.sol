@@ -290,10 +290,11 @@ contract ReputationRegistry {
         {
             givenReputation = __minReputationGiven;
         }
-        _updateUserNoTransactionsSent(msg.sender);
-        _updateUserNoTransactionsReceived(contrahent);
 
         _updateUserCumulativeScore(msg.sender, contrahent, recipientNewScore);
+
+        _updateUserNoTransactionsSent(msg.sender);
+        _updateUserNoTransactionsReceived(contrahent);
         //uint newNoTransactions = profiles[msg.sender].noTransactions + 1;
         //uint recipientNewNoTransactions = profiles[contrahent].noTransactions + 1;
 
