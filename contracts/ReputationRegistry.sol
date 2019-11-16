@@ -27,10 +27,33 @@ contract ReputationRegistry {
     mapping (address => UserProfile) public profiles;
 
     event ErrorEvent( string message );
-    event UserProfileCreated( bytes32 name, address indexed owner);
-    event TransactionScoreChanged(address indexed sender, address indexed recipient, int newScore);
-    event TransactionCountChanged(address indexed recipient, uint newScore);
-    event TransactionAdded( address indexed sender, address indexed recipient, int grade, int recipientNewScore );
+    event UserProfileCreated(
+        bytes32 name,
+        address indexed owner
+    );
+    event TransactionScoreChanged(
+        address indexed sender,
+        address indexed recipient,
+        int newScore
+    );
+    event TransactionCountChanged(
+        address indexed recipient,
+        uint newScore);
+    event TransactionAdded(
+        address indexed sender,
+        address indexed recipient,
+        int grade,
+        int recipientNewScore
+    );
+    event GenericTransactionAdded(
+        address indexed sender,
+        address indexed recipient,
+        uint indexed timestamp,
+        string transactionType,
+        string message,
+        address txHash,
+        uint weiAmount
+    );
 
     constructor(address userRegistryAddress) public {
         //userRegistry = UserRegistry(userRegistryAddress);
@@ -141,6 +164,7 @@ contract ReputationRegistry {
         public
         view
         returns(
+            address owner,
             bytes32 userName,
             int cumulativeScore,
             uint noTransactionsSent,
@@ -149,6 +173,7 @@ contract ReputationRegistry {
     {
         if (!hasProfile(userAddress)) revert("profile not found");
         return(
+            profiles[userAddress].owner,
             profiles[userAddress].userName,
             profiles[userAddress].cumulativeScore,
             profiles[userAddress].noTxSent,
@@ -219,6 +244,13 @@ contract ReputationRegistry {
      * =================================
      */
 
+    function abs(int x) private pure returns(int)
+    {
+        if ( x > 0 ) return x;
+        if ( x < 0 ) return x * -1;
+        return 0;
+    }
+
     // https://bitbucket.org/rhitchens2/soliditycrud
     function _insertProfile(
         address _userAddress,
@@ -248,13 +280,22 @@ contract ReputationRegistry {
         _insertProfile(msg.sender, userName, 0, 0, 0);
     }
 
-    function abs(int x) private pure returns(int)
+    function applyRatingFormula(address sender, address contrahent, int amount)
+        private view
+        returns (int givenReputation, int recipientNewScore)
     {
-        if ( x > 0 ) return x;
-        if ( x < 0 ) return x * -1;
-        return 0;
+        int _recipientNewScore = profiles[contrahent].cumulativeScore + amount;
+        int _givenReputation = profiles[sender].givenReputation[contrahent] + amount;
+        if ( _givenReputation > ( __maxReputationGiven ) )
+        {
+            _givenReputation = __maxReputationGiven;
+        }
+        if ( _givenReputation < __minReputationGiven )
+        {
+            _givenReputation = __minReputationGiven;
+        }
+        return (_givenReputation, _recipientNewScore);
     }
-
 
     function addTransaction(address contrahent, int amount) public
         //onlyKnownProfile(msg.sender)
@@ -280,16 +321,7 @@ contract ReputationRegistry {
         //require(msg.sender != contrahent, "Cannot rate yourself");
 
         // TODO: apply rating formula magic
-        int recipientNewScore = profiles[contrahent].cumulativeScore + amount;
-        int givenReputation = profiles[msg.sender].givenReputation[contrahent] + amount;
-        if ( givenReputation > ( __maxReputationGiven ) )
-        {
-            givenReputation = __maxReputationGiven;
-        }
-        if ( givenReputation < __minReputationGiven )
-        {
-            givenReputation = __minReputationGiven;
-        }
+        (int givenReputation, int recipientNewScore) = applyRatingFormula(msg.sender, contrahent, amount);
 
         _updateUserCumulativeScore(msg.sender, contrahent, recipientNewScore);
 
@@ -303,6 +335,17 @@ contract ReputationRegistry {
         //profiles[msg.sender].noTransactions = newNoTransactions;
         profiles[msg.sender].givenReputation[contrahent] = givenReputation;
         _sendTransaction(msg.sender, contrahent, amount, recipientNewScore);
+    }
+
+    function addGenericTransaction(
+        address contrahent,
+        uint weiAmount,
+        address txHash,
+        string memory message,
+        string memory transactionType
+    ) public
+    {
+        _sendGenericTransaction(msg.sender, contrahent, txHash, weiAmount, message, transactionType);
     }
 
     /**
@@ -321,6 +364,18 @@ contract ReputationRegistry {
     function _sendTransaction (address sender, address recipient, int grading, int recipientNewScore) private
     {
         emit TransactionAdded(sender, recipient, grading, recipientNewScore);
+    }
+
+    function _sendGenericTransaction(
+        address sender,
+        address recipient,
+        address txHash,
+        uint amountInWei,
+        string memory message,
+        string memory transactionType) private
+    {
+        uint timestamp = block.number;
+        emit GenericTransactionAdded(sender, recipient, timestamp, transactionType, message, txHash, amountInWei);
     }
 
     function _revert(string memory message) public
