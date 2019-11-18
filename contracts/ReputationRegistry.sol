@@ -340,12 +340,13 @@ contract ReputationRegistry {
     function addGenericTransaction(
         address contrahent,
         uint weiAmount,
+        uint timestamp,
         string memory txHash,
         string memory message,
         string memory transactionType
     ) public
     {
-        _sendGenericTransaction(msg.sender, contrahent, weiAmount, txHash, message, transactionType);
+        _sendGenericTransaction(msg.sender, contrahent, weiAmount, timestamp, txHash, message, transactionType);
     }
 
     /**
@@ -370,11 +371,11 @@ contract ReputationRegistry {
         address sender,
         address recipient,
         uint amountInWei,
+        uint timestamp,
         string memory txHash,
         string memory message,
         string memory transactionType) private
     {
-        uint timestamp = block.number;
         emit GenericTransactionAdded(sender, recipient, timestamp, transactionType, message, txHash, amountInWei);
     }
 
