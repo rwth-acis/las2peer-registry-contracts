@@ -42,6 +42,7 @@ contract ReputationRegistry {
     event TransactionAdded(
         address indexed sender,
         address indexed recipient,
+        uint indexed timestamp,
         int grade,
         int recipientNewScore
     );
@@ -297,7 +298,7 @@ contract ReputationRegistry {
         return (_givenReputation, _recipientNewScore);
     }
 
-    function addTransaction(address contrahent, int amount) public
+    function addTransaction(address contrahent, int amount, uint timestamp) public
         //onlyKnownProfile(msg.sender)
         //onlyKnownProfile(contrahent)
     {
@@ -334,7 +335,7 @@ contract ReputationRegistry {
         //profiles[contrahent].noTransactions = recipientNewNoTransactions;
         //profiles[msg.sender].noTransactions = newNoTransactions;
         profiles[msg.sender].givenReputation[contrahent] = givenReputation;
-        _sendTransaction(msg.sender, contrahent, amount, recipientNewScore);
+        _sendTransaction(msg.sender, contrahent, timestamp, amount, recipientNewScore);
     }
 
     function addGenericTransaction(
@@ -362,9 +363,14 @@ contract ReputationRegistry {
         emit UserProfileCreated(userName, owner);
     }
 
-    function _sendTransaction (address sender, address recipient, int grading, int recipientNewScore) private
+    function _sendTransaction (
+        address sender,
+        address recipient,
+        uint timestamp,
+        int grading,
+        int recipientNewScore) private
     {
-        emit TransactionAdded(sender, recipient, grading, recipientNewScore);
+        emit TransactionAdded(sender, recipient, timestamp, grading, recipientNewScore);
     }
 
     function _sendGenericTransaction(
