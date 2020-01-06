@@ -275,9 +275,9 @@ contract ReputationRegistry {
         return profileIndex.length-1;
     }
 
-    function createProfile( bytes32 userName ) public
+    function createProfile( address sender, bytes32 userName ) public
     {
-        _insertProfile(msg.sender, userName, 0, 0, 0);
+        _insertProfile(sender, userName, 0, 0, 0);
     }
 
     function applyRatingFormula(address sender, address contrahent, int amount)
