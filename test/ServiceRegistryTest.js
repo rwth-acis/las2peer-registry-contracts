@@ -102,7 +102,7 @@ contract('ServiceRegistryContract', accounts => {
         await serviceRegistry.register(service.name, author.name)
         await serviceRegistry.release(service.name, author.name, 1, 2, 3, service.hash)
 
-        let result = await serviceRegistry.announceDeployment(service.name, service.className, 1, 2, 3, timestamp, nodeId)
+        let result = await serviceRegistry.announceDeployment(service.name, service.className, 1, 2, 3, nodeId)
         let logEntry = result.logs[0]
 
         logEntry.event.should.equal('ServiceDeployment')
@@ -111,7 +111,7 @@ contract('ServiceRegistryContract', accounts => {
         logEntry.args.versionMajor.should.bignumber.equal(new BN(1))
         logEntry.args.versionMinor.should.bignumber.equal(new BN(2))
         logEntry.args.versionPatch.should.bignumber.equal(new BN(3))
-        logEntry.args.timestamp.should.bignumber.equal(timestamp)
+        logEntry.args.timestamp.should.bignumber.least(timestamp)
         logEntry.args.nodeId.should.equal(nodeId)
     })
 
