@@ -2,47 +2,42 @@ pragma solidity ^0.5.0;
 
 contract ConsentRegistry {
 
-    // TODO declare events
+    // TODO Just a draft until better solution is found.
+    enum ConsentLevel {
+        None,
+        Extraction,
+        Analysis,
+        All
+    }
 
     // TODO Clearify: Data structure, user identification
     struct Consent {
-        // TODO: Check referencing a User based on struct in userRegistry
         address owner;
-        bytes32 userName;
-
-        // Data access operation => true (consent given)/false (no consent)
-        // Refer to data access operations?
-        // e.g. LMS-Retrieval => true, Personalized-LA-feedback => false
-        mapping(bytes32 => bool) consentByOperation;
-
-        // Alternative: Hash referencing the stored consent data.
-        // byte32 dataPointer;
+        bytes32 userEmail;
+        ConsentLevel consentLevel;
     }
 
-    mapping(address => Consent[]) userToConsent;
+    // Mapping from user's email to user's consent
+    mapping(byte32 => Consent[]) userMailToConsent;
 
-    function ConsentRegistry(){
-
+    function setConsent(bytes32 email, uint consentLevel) public {
+        _createConsent(Consent(msg.sender, email, ConsentLevel(consentLevel)));
     }
 
-    // params: userID?, Consentdata
-    function setConsent() public returns(bool) {
-        // TODO
-        return true;
+    function _createConsent(Consent memory consent) private {
+        userMailToConsent[consent.userEmail] = consent;
     }
 
-    // params: userID, Consentdata
-    // Necessary?
-    function updateConsent() public returns(bool) {
-        // TODO
-        return true;
+    function checkConsent(bytes32 email) public view returns(uint) {
+        return uint(userMailToConsent[email].consentLevel);
     }
 
-    // params: userID, access operation
-    function checkConsent() public view returns(bool) {
-        // TODO
-        return true;
+    // TODO Delegated function calls to enable setting the consent from a service without forcing the node operator to pay all fees.
+
+    // ----------------- Testing functions -------------------
+
+    function getConsent(bytes32 email) public returns(address, bytes32, uint) {
+        Consent consent = userMailToConsent[email];
+        return (consent.owner, consent.userEmail, uint(consent.consentLevel));
     }
-
-
 }
