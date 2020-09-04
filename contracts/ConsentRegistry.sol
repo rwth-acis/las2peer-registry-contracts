@@ -23,7 +23,7 @@ contract ConsentRegistry {
     }
 
     function checkConsent(bytes32 userId) public view returns(uint8[] memory) {
-        return userConsent[consent.userId].consentLevels;
+        return userConsent[userId].consentLevels;
     }
 
     // TODO Delegated function calls to enable setting the consent from a service without forcing the node operator to pay all fees.
