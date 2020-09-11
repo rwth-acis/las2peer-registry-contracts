@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity >= 0.5.0 <= 0.7.0;
 
 import { Delegation } from "./Delegation.sol";
 
@@ -15,6 +15,14 @@ contract UserRegistry {
     event UserTransferred(bytes32 name);
     //event UserDeleted(bytes32);
 
+    event DIDAttributeChanged(
+        bytes32 userName,
+        bytes32 attrName,
+        bytes value, // Not JSON, but custom, more efficient encoding
+        uint validTo, // Used to limit time or invalidate attribute
+        uint previousChange // Used to query all change events
+    );
+
     struct User {
         bytes32 name;
         bytes agentId;
@@ -23,6 +31,13 @@ contract UserRegistry {
     }
 
     mapping (bytes32 => User) public users;
+
+    // Number of the block where the last change to event-based storage of a user (by name) occured.
+    mapping (bytes32 => uint) changed;
+
+    // Nonce to prevent replay attacks (mapped by owner)
+    // Owner needs to include nonce in signature
+    mapping (address => uint) nonce;
 
     modifier onlyOwnName(bytes32 name) {
         require(name != 0, "Empty name is not owned by anyone.");
@@ -49,6 +64,13 @@ contract UserRegistry {
     // convenience function mainly for other contracts
     function isOwner(address claimedOwner, bytes32 userName) public view returns(bool) {
         return users[userName].owner == claimedOwner;
+    }
+
+    // onlyOwner is the modifier version of isOwner
+    modifier onlyOwner(address claimedOwner, bytes32 userName) {
+        require(isOwner(claimedOwner, userName));
+
+        _;
     }
 
     function register(bytes32 name, bytes memory agentId, bytes memory publicKey) public {
@@ -107,5 +129,78 @@ contract UserRegistry {
     function _transfer(bytes32 name, address newOwner) private {
         users[name].owner = newOwner;
         emit UserTransferred(name);
+    }
+
+    // _setAttribute adds an DID attribute to a user.
+    // It references the block of the last change to the user's attributes.
+    // This allows us to quickly iterate over a user's change events to build the attribute objects.
+    //
+    // Existence of user verified by onlyOwner
+    function _setAttribute(
+        bytes32 userName,
+        address actor,
+        bytes32 attrName,
+        bytes memory value,
+        uint validity
+    ) internal onlyOwner(actor, userName) {
+        emit DIDAttributeChanged(userName, attrName, value, now + validity, changed[userName]);
+        changed[userName] = block.number;
+    }
+
+    function setAttribute(
+        bytes32 userName,
+        bytes32 attrName,
+        bytes memory value,
+        uint validity
+    ) public {
+        _setAttribute(userName, msg.sender, attrName, value, validity);
+    }
+
+    function delegatedSetAttribute(
+        bytes32 userName,
+        bytes32 attrName,
+        bytes memory value,
+        uint validity,
+        address consentee,
+        bytes memory consentSignature
+    ) public onlyOwner(consentee, userName) {
+        // first 8 chars of keccak("setAttribute(bytes32,bytes32,bytes,uint)")
+        bytes memory methodId = hex"5516e043";
+        bytes memory args = abi.encode(userName, attrName, value, validity, nonce[consentee]);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
+        nonce[consentee]++;
+
+        _setAttribute(userName, consentee, attrName, value, validity);
+    }
+
+    // _revokeAttribute revokes an attribute by setting its validTo to 0
+    // Cannot "remove" an attribute since it was written to the blockchain.
+    // Wording chosen to avoid confusion.
+    function _revokeAttribute(
+        bytes32 userName,
+        address actor,
+        bytes32 attrName
+    ) internal onlyOwner(actor, userName) {
+        emit DIDAttributeChanged(userName, attrName, "", 0, changed[userName]);
+        changed[userName] = block.number;
+    }
+
+    function revokeAttribute(bytes32 userName, bytes32 attrName) public {
+        _revokeAttribute(userName, msg.sender, attrName);
+    }
+
+    function delegatedRevokeAttribute(
+        bytes32 userName,
+        bytes32 attrName,
+        address consentee,
+        bytes memory consentSignature
+    ) public {
+        // first 8 chars of keccak("revokeAttribute(bytes32,bytes32)")
+        bytes memory methodId = hex"61991dbe";
+        bytes memory args = abi.encode(userName, attrName, nonce[consentee]);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
+        nonce[consentee]++;
+
+        _revokeAttribute(userName, consentee, attrName);
     }
 }
