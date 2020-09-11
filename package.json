@@ -9,12 +9,14 @@
     "truffle.js"
   ],
   "scripts": {
+    "compile": "node_modules/.bin/truffle compile",
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
     "lint:js": "node_modules/.bin/eslint .",
     "lint:js:fix": "node_modules/.bin/eslint . --fix",
     "lint:sol": "node_modules/.bin/solium -d .",
     "lint:sol:fix": "node_modules/.bin/solium -d . --fix",
+    "migrate": "node_modules/.bin/truffle migrate",
     "ganache": "node_modules/.bin/ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price'",
     "start-ganache": "node_modules/.bin/ganache-cli --mnemonic 'differ employ cook sport clinic wedding melody column pave stuff oak price' >/dev/null & echo $! > .ganache-cli_pid",
     "stop-ganache": "kill -s QUIT $(cat .ganache-cli_pid) && rm -f .ganache-cli_pid",
@@ -43,6 +45,7 @@
     "eslint-plugin-standard": "^4.0.0",
     "ganache-cli": "^6.10.1",
     "solium": "^1.1.8",
-    "truffle": "^5.1.42"
+    "truffle": "^5.1.42",
+    "web3": "^1.2.11"
   }
 }
