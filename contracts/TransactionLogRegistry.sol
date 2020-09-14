@@ -27,4 +27,12 @@ contract TransactionLogRegistry {
         return timestamps;
     }
 
+    function getDataHashesForUser(bytes32 userId) public view returns (bytes32[] memory) {
+        bytes32[] memory hashes = new bytes32[](userToLogEntries[userId].length);
+        for (uint i = 0; i < userToLogEntries[userId].length; i++) {
+            hashes[i] = userToLogEntries[userId][i].dataHash;
+        }
+        return hashes;
+    }
+
 }

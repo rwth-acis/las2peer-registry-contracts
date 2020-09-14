@@ -60,4 +60,10 @@ contract ConsentRegistry {
         return (consent.owner, consent.timestamp, consent.userId, consent.consentLevels);
     }
 
+    // Replaces the consent for the given user with an empty consent.
+    function revokeConsent(bytes32 userId) public {
+        if (!hasStoredConsent(userId)) revert("No consent stored for this user.");
+        uint8[] memory empty;
+        _createConsent(Consent(msg.sender, now, userId, empty));
+    }
 }
