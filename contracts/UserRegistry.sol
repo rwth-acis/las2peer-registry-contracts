@@ -179,28 +179,30 @@ contract UserRegistry {
     function _revokeAttribute(
         bytes32 userName,
         address actor,
-        bytes32 attrName
+        bytes32 attrName,
+        bytes memory value
     ) internal onlyOwner(actor, userName) {
-        emit DIDAttributeChanged(userName, attrName, "", 0, changed[userName]);
+        emit DIDAttributeChanged(userName, attrName, value, 0, changed[userName]);
         changed[userName] = block.number;
     }
 
-    function revokeAttribute(bytes32 userName, bytes32 attrName) public {
-        _revokeAttribute(userName, msg.sender, attrName);
+    function revokeAttribute(bytes32 userName, bytes32 attrName, bytes memory value) public {
+        _revokeAttribute(userName, msg.sender, attrName, value);
     }
 
     function delegatedRevokeAttribute(
         bytes32 userName,
         bytes32 attrName,
+        bytes memory value,
         address consentee,
         bytes memory consentSignature
     ) public {
-        // first 8 chars of keccak("revokeAttribute(bytes32,bytes32)")
-        bytes memory methodId = hex"61991dbe";
-        bytes memory args = abi.encode(userName, attrName, nonce[consentee]);
+        // first 8 chars of keccak("revokeAttribute(bytes32,bytes32,bytes)")
+        bytes memory methodId = hex"80f9a59d";
+        bytes memory args = abi.encode(userName, attrName, value, nonce[consentee]);
         Delegation.checkConsent(methodId, args, consentee, consentSignature);
         nonce[consentee]++;
 
-        _revokeAttribute(userName, consentee, attrName);
+        _revokeAttribute(userName, consentee, attrName, value);
     }
 }

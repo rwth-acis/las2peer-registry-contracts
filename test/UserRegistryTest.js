@@ -108,13 +108,14 @@ contract('UserRegistryContract', accounts => {
     it('revokes attribute', async () => {
         await userRegistry.register(agent.name, agent.id, agent.publicKey)
         await userRegistry.setAttribute(agent.name, service.attrName, service.value, service.validity)
-        const revokeAttrResult = await userRegistry.revokeAttribute(agent.name, service.attrName)
+        const revokeAttrResult = await userRegistry.revokeAttribute(agent.name, service.attrName, service.value)
 
         return Promise.all([
             revokeAttrResult.should.nested.include({
                 'logs[0].event': 'DIDAttributeChanged',
                 'logs[0].args.userName': web3.utils.padRight(agent.name, 64),
-                'logs[0].args.attrName': web3.utils.padRight(service.attrName, 64)
+                'logs[0].args.attrName': web3.utils.padRight(service.attrName, 64),
+                'logs[0].args.value': web3.utils.padRight(service.value, 64)
             }),
             revokeAttrResult.logs[0].args.validTo.should.be.bignumber.equal(web3.utils.toBN(0))
         ])
@@ -123,7 +124,7 @@ contract('UserRegistryContract', accounts => {
     it('sets previousChange correctly when revoking an attribute', async () => {
         await userRegistry.register(agent.name, agent.id, agent.publicKey)
         const setAttrResult = await userRegistry.setAttribute(agent.name, service.attrName, service.value, service.validity)
-        const revokeAttrResult = await userRegistry.revokeAttribute(agent.name, service.attrName)
+        const revokeAttrResult = await userRegistry.revokeAttribute(agent.name, service.attrName, service.value)
 
         return Promise.all([
             revokeAttrResult.logs[0].args.previousChange.should.be.bignumber.equal(web3.utils.toBN(setAttrResult.receipt.blockNumber))
