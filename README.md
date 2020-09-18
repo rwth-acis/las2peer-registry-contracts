@@ -5,7 +5,7 @@ This repo contains Solidity smart contracts for an Ethereum-based service regist
 ## Development Status
 
 The contracts are very much a work in progress and not ready for production use.
-However, you can try out the development environment and play around with the contracts in an IDE like [Remix](https://remix.ethereum.org/) or on the command line. 
+However, you can try out the development environment and play around with the contracts in an IDE like [Remix](https://remix.ethereum.org/) or on the command line.
 
 ## Installation & Dependencies
 
@@ -30,7 +30,7 @@ And later:
 npm run stop-ganache
 ```
 
-That’s it — the default configuration is fine. This sets up a local blockchain for development purposes and serves its API on port 8545. Don’t worry, with these settings, mining blocks does not fry your CPU. By default, the blockchain data is not persisted, i.e., restarting ganache will give you a blank slate. 
+That’s it — the default configuration is fine. This sets up a local blockchain for development purposes and serves its API on port 8545. Don’t worry, with these settings, mining blocks does not fry your CPU. By default, the blockchain data is not persisted, i.e., restarting ganache will give you a blank slate.
 
 If you actually want to see what’s going on, run `./node_modules/.bin/ganache-cli` directly, or even install and run the [Ganache GUI](https://truffleframework.com/ganache) for a pretty visual interface.
 
@@ -42,8 +42,8 @@ Optional: set up convenient shortcuts for the truffle and ganache-cli executable
 Truffle, ganache-cli, and other developer dependencies’ binaries can be found in `./node_modules/.bin/`. If you find this inconvenient and would prefer to access them simply by their name, you have several options.
 
 1. Install them globally with npm, e.g., `npm install --global truffle`. This makes sense if you want to use a tool in other projects too.
-2. Set up an alias for each tool you want to use, e.g., `alias truffle="$(realpath ./node_modules/.bin/truffle)"`. 
-3. Modify your `PATH`, e.g., `export PATH="$(realpath ./node_modules/.bin):PATH"`, if you want to make all tools from the `.bin` directory available. 
+2. Set up an alias for each tool you want to use, e.g., `alias truffle="$(realpath ./node_modules/.bin/truffle)"`.
+3. Modify your `PATH`, e.g., `export PATH="$(realpath ./node_modules/.bin):PATH"`, if you want to make all tools from the `.bin` directory available.
 
 To make the alias or PATH persistent, put the commands with the absolute path [in your shell configuration script](https://wiki.archlinux.org/index.php/Bash#Aliases).
 </details>
@@ -53,7 +53,7 @@ To make the alias or PATH persistent, put the commands with the absolute path [i
 The compilation of the contracts, deployment of the bytecode contracts to the blockchain, and running tests is all handled by truffle.
 
 
-Compilation and deployment can be run manually via truffle’s `compile` and `migrate` commands, but simply running the tests will also trigger these steps if necessary. Thus, simply try: 
+Compilation and deployment can be run manually via truffle’s `compile` and `migrate` commands, but simply running the tests will also trigger these steps if necessary. Thus, simply try:
 
 ```sh
 npm run test
@@ -61,9 +61,20 @@ npm run test
 
 This requires a running Ethereum client as described above.
 
+## Generate Java classes from Solidity contracts
+
+After compiling the contracts to JSON files using `truffle`, you can generate the Java classes needed to access the contracts with Web3J by running the `epirus` command.
+As `epirus` cannot be installed through most package managers, at the moment, the generation of the classes can be done using a Docker container.
+
+> Please make sure you have a recent version of Docker and docker-compose installed on your system.
+
+```bash
+docker-compose build . && docker-compose run --rm epirus
+```
+
 <!--
 DOCUMENTATION TODO
 
 * describe how to set up Remix to try the contracts
-* explain all the stuff that took me a long time to figure out, e.g., the tests and accessing contract functions via the truffle JS wrapper 
+* explain all the stuff that took me a long time to figure out, e.g., the tests and accessing contract functions via the truffle JS wrapper
 -->

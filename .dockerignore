@@ -1,0 +1,23 @@
+# Git
+.git
+.gitattributes
+.gitignore
+
+# NPM
+node_modules
+package.json
+package-lock.json
+
+# Solidity
+build
+contracts
+migrations
+test
+.soliumignore
+.soliumrc.json
+truffle.js
+
+.editorconfig
+.eslintrc.json
+
+README.md

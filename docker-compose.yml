@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  epirus:
+    build:
+      context: .
+    volumes:
+      - ./build:/build/build
