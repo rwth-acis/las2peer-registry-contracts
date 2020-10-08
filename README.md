@@ -69,7 +69,7 @@ As `epirus` cannot be installed through most package managers, at the moment, th
 > Please make sure you have a recent version of Docker and docker-compose installed on your system.
 
 ```bash
-docker-compose build . && docker-compose run --rm epirus
+docker-compose build && docker-compose run --rm epirus
 ```
 
 <!--
