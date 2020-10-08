@@ -17,7 +17,7 @@ contract UserRegistry {
 
     event DIDAttributeChanged(
         bytes32 userName,
-        bytes32 attrName,
+        string attrName,
         bytes value, // Not JSON, but custom, more efficient encoding
         uint validTo, // Used to limit time or invalidate attribute
         uint previousChange // Used to query all change events
@@ -139,7 +139,7 @@ contract UserRegistry {
     function _setAttribute(
         bytes32 userName,
         address actor,
-        bytes32 attrName,
+        string memory attrName,
         bytes memory value,
         uint validity
     ) internal onlyOwner(actor, userName) {
@@ -149,7 +149,7 @@ contract UserRegistry {
 
     function setAttribute(
         bytes32 userName,
-        bytes32 attrName,
+        string memory attrName,
         bytes memory value,
         uint validity
     ) public {
@@ -158,14 +158,14 @@ contract UserRegistry {
 
     function delegatedSetAttribute(
         bytes32 userName,
-        bytes32 attrName,
+        string memory attrName,
         bytes memory value,
         uint validity,
         address consentee,
         bytes memory consentSignature
     ) public onlyOwner(consentee, userName) {
-        // first 8 chars of keccak("setAttribute(bytes32,bytes32,bytes,uint)")
-        bytes memory methodId = hex"5516e043";
+        // first 8 chars of keccak("setAttribute(bytes32,string,bytes,uint)")
+        bytes memory methodId = hex"d0acaefe";
         bytes memory args = abi.encode(userName, attrName, value, validity, nonce[consentee]);
         Delegation.checkConsent(methodId, args, consentee, consentSignature);
         nonce[consentee]++;
@@ -179,26 +179,30 @@ contract UserRegistry {
     function _revokeAttribute(
         bytes32 userName,
         address actor,
-        bytes32 attrName,
+        string memory attrName,
         bytes memory value
     ) internal onlyOwner(actor, userName) {
         emit DIDAttributeChanged(userName, attrName, value, 0, changed[userName]);
         changed[userName] = block.number;
     }
 
-    function revokeAttribute(bytes32 userName, bytes32 attrName, bytes memory value) public {
+    function revokeAttribute(
+        bytes32 userName,
+        string memory attrName,
+        bytes memory value
+    ) public {
         _revokeAttribute(userName, msg.sender, attrName, value);
     }
 
     function delegatedRevokeAttribute(
         bytes32 userName,
-        bytes32 attrName,
+        string memory attrName,
         bytes memory value,
         address consentee,
         bytes memory consentSignature
     ) public {
-        // first 8 chars of keccak("revokeAttribute(bytes32,bytes32,bytes)")
-        bytes memory methodId = hex"80f9a59d";
+        // first 8 chars of keccak("revokeAttribute(bytes32,string,bytes)")
+        bytes memory methodId = hex"d0e95521";
         bytes memory args = abi.encode(userName, attrName, value, nonce[consentee]);
         Delegation.checkConsent(methodId, args, consentee, consentSignature);
         nonce[consentee]++;

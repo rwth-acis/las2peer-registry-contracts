@@ -88,7 +88,7 @@ contract('UserRegistryContract', accounts => {
             setAttrResult.should.nested.include({
                 'logs[0].event': 'DIDAttributeChanged',
                 'logs[0].args.userName': web3.utils.padRight(agent.name, 64),
-                'logs[0].args.attrName': web3.utils.padRight(service.attrName, 64),
+                'logs[0].args.attrName': service.attrName,
                 'logs[0].args.value': web3.utils.padRight(service.value, 64)
             }),
             parseInt(setAttrResult.logs[0].args.validTo).should.be.at.most(Date.now() + 1000 * 365 * 86400)
@@ -114,7 +114,7 @@ contract('UserRegistryContract', accounts => {
             revokeAttrResult.should.nested.include({
                 'logs[0].event': 'DIDAttributeChanged',
                 'logs[0].args.userName': web3.utils.padRight(agent.name, 64),
-                'logs[0].args.attrName': web3.utils.padRight(service.attrName, 64),
+                'logs[0].args.attrName': service.attrName,
                 'logs[0].args.value': web3.utils.padRight(service.value, 64)
             }),
             revokeAttrResult.logs[0].args.validTo.should.be.bignumber.equal(web3.utils.toBN(0))
