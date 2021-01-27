@@ -1,6 +1,6 @@
 {
   "name": "las2peer-registry-contracts",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Solidity smart contracts for the las2peer Service Registry",
   "files": [
     "contracts",
