@@ -34,6 +34,22 @@ contract ServiceRegistry {
         uint timestamp
     );
 
+    event ClusterServiceDeployment(
+        bytes32 indexed nameHash,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch,
+        uint timestamp
+    );
+
+    event ClusterServiceDeploymentEnd(
+        bytes32 indexed nameHash,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch,
+        uint timestamp
+    );
+
     event ServiceDeploymentEnd(
         bytes32 indexed nameHash,
         string className,
@@ -152,6 +168,31 @@ contract ServiceRegistry {
     {
         bytes32 nameHash = stringHash(serviceName);
         emit ServiceDeployment(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, now);
+    }
+
+    function announceClusterDeployment(
+        string memory serviceName,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch
+    )
+    public
+    {
+        bytes32 nameHash = stringHash(serviceName);
+        emit ClusterServiceDeployment(nameHash, versionMajor, versionMinor, versionPatch, now);
+    }
+
+    function announceClusterDeploymentEnd(
+        string memory serviceName,
+        uint versionMajor,
+        uint versionMinor,
+        uint versionPatch
+    )
+        public
+        onlyRegisteredService(serviceName)
+    {
+        bytes32 nameHash = stringHash(serviceName);
+        emit ClusterServiceDeploymentEnd(nameHash, versionMajor, versionMinor, versionPatch, now);
     }
 
     function announceDeploymentEnd(
