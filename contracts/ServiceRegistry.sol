@@ -39,6 +39,7 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
+        bytes hash,
         uint timestamp
     );
 
@@ -47,6 +48,7 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
+        bytes hash,
         uint timestamp
     );
 
