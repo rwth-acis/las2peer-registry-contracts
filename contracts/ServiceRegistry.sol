@@ -48,7 +48,6 @@ contract ServiceRegistry {
         uint versionMajor,
         uint versionMinor,
         uint versionPatch,
-        bytes hash,
         uint timestamp
     );
 
@@ -190,14 +189,13 @@ contract ServiceRegistry {
         string memory serviceName,
         uint versionMajor,
         uint versionMinor,
-        uint versionPatch,
-        bytes memory hash
+        uint versionPatch
     )
         public
         onlyRegisteredService(serviceName)
     {
         bytes32 nameHash = stringHash(serviceName);
-        emit ClusterServiceDeploymentEnd(nameHash, versionMajor, versionMinor, versionPatch, hash, now);
+        emit ClusterServiceDeploymentEnd(nameHash, versionMajor, versionMinor, versionPatch, now);
     }
 
     function announceDeploymentEnd(
