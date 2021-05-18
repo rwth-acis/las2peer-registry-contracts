@@ -23,9 +23,10 @@ module.exports = function (deployer) {
     }).then(function() {
         return deployer.deploy(UserRegistryContract, {overwrite: false}).then( function () {
             return deployer.deploy(ServiceRegistryContract, UserRegistryContract.address)
-        }).then(function() {
+        })
+    }).then(function() {
             return deployer.deploy(GroupRegistryContract, {overwrite: false}).then( function () {
                 return deployer.deploy(ServiceRegistryContract, GroupRegistryContract.address)
-            });;
+        });
     });
 }
