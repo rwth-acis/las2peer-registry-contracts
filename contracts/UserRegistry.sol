@@ -88,7 +88,7 @@ contract UserRegistry {
         bytes memory args = abi.encode(name, agentId, publicKey);
         Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
-        _register(User(name, agentId, publicKey, consentee));
+        _update(User(name, agentId, publicKey, consentee));
     }
 
     function transfer(bytes32 name, address newOwner) public onlyOwnName(name) {
