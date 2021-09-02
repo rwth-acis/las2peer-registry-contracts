@@ -54,8 +54,27 @@ contract UserRegistry {
     function register(bytes32 name, bytes memory agentId, bytes memory publicKey) public {
         _register(User(name, agentId, publicKey, msg.sender));
     }
+    function update(bytes32 name, bytes memory agentId, bytes memory publicKey) public {
+        _update(User(name, agentId, publicKey, msg.sender));
+    }
 
     function delegatedRegister(
+        bytes32 name,
+        bytes memory agentId,
+        bytes memory publicKey,
+        address consentee,
+        bytes memory consentSignature
+    )
+        public
+    {
+        // first 8 chars of keccak("register(bytes32,bytes,bytes)")
+        bytes memory methodId = hex"ebc1b8ff";
+        bytes memory args = abi.encode(name, agentId, publicKey);
+        Delegation.checkConsent(methodId, args, consentee, consentSignature);
+
+        _register(User(name, agentId, publicKey, consentee));
+    }
+    function delegateUpdate(
         bytes32 name,
         bytes memory agentId,
         bytes memory publicKey,
@@ -99,6 +118,13 @@ contract UserRegistry {
         require(user.owner != address(0), "Owner address must be non-zero.");
 
         require(nameIsAvailable(user.name), "Name already taken or invalid.");
+
+        users[user.name] = user;
+        emit UserRegistered(user.name, now);
+    }
+    function _update(User memory user) private {
+        require(user.name != bytes32(0), "Name must be non-zero.");
+        require(user.owner != address(0), "Owner address must be non-zero.");
 
         users[user.name] = user;
         emit UserRegistered(user.name, now);
