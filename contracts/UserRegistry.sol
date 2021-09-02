@@ -86,7 +86,7 @@ contract UserRegistry {
         // first 8 chars of keccak("register(bytes32,bytes,bytes)")
         bytes memory methodId = hex"ebc1b8ff";
         bytes memory args = abi.encode(name, agentId, publicKey);
-        Delegation.checkConsent(methodId, args, consentee, consentSignature);
+        // Delegation.checkConsent(methodId, args, consentee, consentSignature);
 
         _update(User(name, agentId, publicKey, consentee));
     }
