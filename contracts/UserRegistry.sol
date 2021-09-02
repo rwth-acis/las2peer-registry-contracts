@@ -127,7 +127,7 @@ contract UserRegistry {
         require(user.owner != address(0), "Owner address must be non-zero.");
 
         users[user.name] = user;
-        emit UserRegistered(user.name, now);
+        // emit UserRegistered(user.name, now);
     }
 
     function _transfer(bytes32 name, address newOwner) private {
