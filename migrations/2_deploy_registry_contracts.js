@@ -25,8 +25,8 @@ module.exports = function (deployer) {
             return deployer.deploy(ServiceRegistryContract, UserRegistryContract.address)
         })
     }).then(function() {
-            return deployer.deploy(GroupRegistryContract, {overwrite: false}).then( function () {
-                return deployer.deploy(ServiceRegistryContract, GroupRegistryContract.address)
-        });
+        // GroupRegistry has no constructor arguments. ServiceRegistry must keep
+        // pointing at UserRegistry, so it must not be redeployed here.
+        return deployer.deploy(GroupRegistryContract)
     });
 }

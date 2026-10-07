@@ -309,7 +309,7 @@ contract ReputationRegistry {
             _revert("contrahent profile unknown");
         }
 
-        if ( amount > __amountMax && amount < __amountMin ) {
+        if ( amount > __amountMax || amount < __amountMin ) {
             _revert("Rating must be an int between __amountMin and __amountMax");
         }
 
