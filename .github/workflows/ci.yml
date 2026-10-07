@@ -15,7 +15,7 @@ jobs:
       - name: Start dev chain
         # istanbul: truffle 5.0 cannot send EIP-1559 transactions
         run: |
-          npx -y ganache@7.9.2 --chain.hardfork istanbul --miner.blockGasLimit 6721975 --logging.quiet &
+          npx -y ganache@7.9.2 --chain.networkId 456719 --chain.hardfork istanbul --miner.blockGasLimit 6721975 --logging.quiet &
           for i in $(seq 1 30); do
             curl -sf -X POST -H 'content-type: application/json' \
               --data '{"jsonrpc":"2.0","id":1,"method":"net_version","params":[]}' http://127.0.0.1:8545 && exit 0
