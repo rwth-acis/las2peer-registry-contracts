@@ -1,3 +1,2 @@
 [tools]
-node = "16" # truffle 5.0
-npm = "8"   # npm >= 10 does not run on Node 16
+foundry = "1.8.5"

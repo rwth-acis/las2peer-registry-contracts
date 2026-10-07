@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 contract xAPIVerificationRegistry {
     struct LogEntry{
@@ -19,7 +19,7 @@ contract xAPIVerificationRegistry {
         uint8 purposeVersion
     ) public {
         LogEntry memory tmp = LogEntry(
-            userID, dataHash, purposeCode, purposeVersion, now
+            userID, dataHash, purposeCode, purposeVersion, block.timestamp
         );
         userToEntries[userID].push(tmp);
     }
@@ -36,7 +36,7 @@ contract xAPIVerificationRegistry {
                 dataHashes[i],
                 purposeCodes[i],
                 purposeVersions[i],
-                now
+                block.timestamp
             );
             userToEntries[userIDs[i]].push(tmp);
         }

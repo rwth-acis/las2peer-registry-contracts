@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 // import "./UserRegistry.sol";
 
@@ -56,7 +56,7 @@ contract ReputationRegistry {
         uint weiAmount
     );
 
-    constructor(address userRegistryAddress) public {
+    constructor(address userRegistryAddress) {
         //userRegistry = UserRegistry(userRegistryAddress);
     }
 
@@ -263,14 +263,15 @@ contract ReputationRegistry {
     {
         if ( hasProfile(_userAddress) ) _revert("profile already exists");
 
-        profiles[_userAddress] = UserProfile({
-            owner: _userAddress,
-            userName: _userName,
-            cumulativeScore: _cumulativeScore,
-            noTxSent: _noTransactionsSent,
-            noTxRcvd: _noTransactionsRcvd,
-            index: profileIndex.push(_userAddress)-1
-        });
+        // structs containing mappings cannot be constructed as a whole since Solidity 0.7
+        profileIndex.push(_userAddress);
+        UserProfile storage profile = profiles[_userAddress];
+        profile.owner = _userAddress;
+        profile.userName = _userName;
+        profile.cumulativeScore = _cumulativeScore;
+        profile.noTxSent = _noTransactionsSent;
+        profile.noTxRcvd = _noTransactionsRcvd;
+        profile.index = profileIndex.length - 1;
 
         _createProfile(_userName, _userAddress);
         return profileIndex.length-1;

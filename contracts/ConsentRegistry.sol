@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 import { Delegation } from "./Delegation.sol";
 
@@ -22,7 +22,7 @@ contract ConsentRegistry {
     // If no consent has been stored before, consent is stored for given user
     function storeConsent(bytes32 userId, uint8[] memory consentLevels) public {
         if (hasStoredConsent(userId)) revert("Cannot overwrite stored consent.");
-        _createConsent(Consent(msg.sender, now, userId, consentLevels));
+        _createConsent(Consent(msg.sender, block.timestamp, userId, consentLevels));
     }
 
     // Stores consent Object in mapping
@@ -44,7 +44,7 @@ contract ConsentRegistry {
         Delegation.checkConsent(methodId, args, consentee, signature);
 
         if (hasStoredConsent(userId)) revert("Cannot overwrite stored consent.");
-        _createConsent(Consent(consentee, now, userId, consentLevels));
+        _createConsent(Consent(consentee, block.timestamp, userId, consentLevels));
     }
 
     // Returns the consent levels stored for the given user
@@ -64,6 +64,6 @@ contract ConsentRegistry {
     function revokeConsent(bytes32 userId) public {
         if (!hasStoredConsent(userId)) revert("No consent stored for this user.");
         uint8[] memory empty;
-        _createConsent(Consent(msg.sender, now, userId, empty));
+        _createConsent(Consent(msg.sender, block.timestamp, userId, empty));
     }
 }

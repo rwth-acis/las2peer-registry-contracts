@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 import { Delegation } from "./Delegation.sol";
 
@@ -101,7 +101,7 @@ contract GroupRegistry {
         require(groupNameIsAvailable(group.name), "Name already taken or invalid.");
 
         groups[group.name] = group;
-        emit GroupRegistered(group.name, now);
+        emit GroupRegistered(group.name, block.timestamp);
     }
 
     function _transfer(bytes32 name, address newOwner) private {

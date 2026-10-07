@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 contract TransactionLogRegistry {
     struct LogEntry {
@@ -12,7 +12,7 @@ contract TransactionLogRegistry {
     mapping(bytes32 => LogEntry[]) userToLogEntries;
 
     function createLogEntry(bytes32 userId, bytes32 source, bytes32 operation, bytes32 dataHash) public {
-        _createLogEntry(LogEntry(now, userId, source, operation, dataHash));
+        _createLogEntry(LogEntry(block.timestamp, userId, source, operation, dataHash));
     }
 
      function _createLogEntry(LogEntry memory logEntry) private {

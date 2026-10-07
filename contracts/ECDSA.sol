@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 // This file is from https://github.com/OpenZeppelin/openzeppelin-solidity/blob/v2.1.1/contracts/cryptography/ECDSA.sol
 // LICENSE: https://github.com/OpenZeppelin/openzeppelin-solidity/blob/master/LICENSE

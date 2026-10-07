@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 import "./UserRegistry.sol";
 
@@ -73,7 +73,7 @@ contract ServiceRegistry {
         _;
     }
 
-    constructor(address userRegistryAddress) public {
+    constructor(address userRegistryAddress) {
         userRegistry = UserRegistry(userRegistryAddress);
     }
 
@@ -151,7 +151,7 @@ contract ServiceRegistry {
         onlyRegisteredService(serviceName)
     {
         bytes32 nameHash = stringHash(serviceName);
-        emit ServiceDeployment(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, now);
+        emit ServiceDeployment(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, block.timestamp);
     }
 
     function announceDeploymentEnd(
@@ -166,7 +166,7 @@ contract ServiceRegistry {
         onlyRegisteredService(serviceName)
     {
         bytes32 nameHash = stringHash(serviceName);
-        emit ServiceDeploymentEnd(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, now);
+        emit ServiceDeploymentEnd(nameHash, className, versionMajor, versionMinor, versionPatch, nodeId, block.timestamp);
     }
 
     function _register(
@@ -180,7 +180,7 @@ contract ServiceRegistry {
         require(nameIsAvailable(serviceName), "Service name already taken.");
         bytes32 hash = stringHash(serviceName);
         services[hash] = Service(serviceName, authorName);
-        emit ServiceCreated(hash, authorName, now);
+        emit ServiceCreated(hash, authorName, block.timestamp);
     }
 
     function _release(
@@ -199,6 +199,6 @@ contract ServiceRegistry {
         require(services[nameHash].author == authorName, "Passed author does not own service.");
 
         serviceVersions[nameHash].push(Version(versionMajor, versionMinor, versionPatch));
-        emit ServiceReleased(nameHash, versionMajor, versionMinor, versionPatch, hash, now);
+        emit ServiceReleased(nameHash, versionMajor, versionMinor, versionPatch, hash, block.timestamp);
     }
 }

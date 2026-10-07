@@ -1,3 +1,6 @@
 .git
-node_modules
-build
+out
+cache
+lib
+broadcast
+deployments/*.properties

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 contract PrivacyConsentRegistry {
     struct Consent {
@@ -25,7 +25,7 @@ contract PrivacyConsentRegistry {
     function storeConsent(bytes32 userID, bytes32 serviceID, bytes32 courseID,
         uint8[] memory purposes, uint8[] memory purposeVersions
     ) public {
-        consentDatabase[userID][serviceID][courseID] = Consent(userID, serviceID, courseID, purposes, purposeVersions, now);
+        consentDatabase[userID][serviceID][courseID] = Consent(userID, serviceID, courseID, purposes, purposeVersions, block.timestamp);
     }
     
 }

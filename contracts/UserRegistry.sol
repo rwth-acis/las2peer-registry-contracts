@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.8.24;
 
 import { Delegation } from "./Delegation.sol";
 
@@ -101,7 +101,7 @@ contract UserRegistry {
         require(nameIsAvailable(user.name), "Name already taken or invalid.");
 
         users[user.name] = user;
-        emit UserRegistered(user.name, now);
+        emit UserRegistered(user.name, block.timestamp);
     }
 
     function _transfer(bytes32 name, address newOwner) private {
