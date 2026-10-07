@@ -42,6 +42,7 @@ if cast client --rpc-url "$RPC" 2>/dev/null | grep -qi anvil; then
   cast rpc --rpc-url "$RPC" anvil_setCoinbase "$(cast wallet address --private-key "${DEV_KEYS[0]}")" >/dev/null
 fi
 
+mkdir -p deployments
 forge script script/Deploy.s.sol --rpc-url "$RPC" --private-key "$DEPLOYER_KEY" --broadcast --slow -q
 if [[ -n "${REGISTRY_CONFIG:-}" ]]; then
   cp deployments/registry.properties "$REGISTRY_CONFIG"
