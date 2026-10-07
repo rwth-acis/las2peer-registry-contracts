@@ -1,8 +1,8 @@
 module.exports = {
     networks: {
         development: {
-            host: '127.0.0.1',
-            port: 8545,
+            host: process.env.ETH_HOST || '127.0.0.1',
+            port: Number(process.env.ETH_PORT || 8545),
             network_id: '*'
         },
         cluster: {
